@@ -79,9 +79,9 @@ class TaxAgent:
             return self._local_response(user_message, mode)
 
     def _call_api(self) -> str:
-        """Gọi Claude API dùng requests – xử lý UTF-8 đúng trên mọi môi trường."""
+        """Gọi Claude API dùng httpx – có sẵn, xử lý bytes thuần không qua latin-1."""
         import json as _json
-        import requests
+        import httpx
 
         try:
             context = self._build_context()
@@ -94,28 +94,32 @@ class TaxAgent:
                 "messages": self.history,
             }
 
-            resp = requests.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": self.api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                data=_json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-                timeout=60,
-            )
+            # ensure_ascii=True: chuyển toàn bộ ký tự tiếng Việt sang \uXXXX
+            # body hoàn toàn là ASCII bytes – không có tầng nào encode latin-1
+            body_bytes = _json.dumps(payload, ensure_ascii=True).encode("ascii")
+
+            with httpx.Client(timeout=60) as client:
+                resp = client.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={
+                        "x-api-key": self.api_key,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json",
+                    },
+                    content=body_bytes,  # raw bytes, không qua json= hay data=
+                )
 
             result = resp.json()
 
             if "error" in result:
-                return f"❌ Lỗi API: {result['error'].get('message', str(result['error']))}"
+                return "Loi API: " + str(result.get("error", result))
 
             answer = result["content"][0]["text"]
             self.history.append({"role": "assistant", "content": answer})
             return answer
 
         except Exception as e:
-            return f"❌ Lỗi kết nối API: {type(e).__name__}: {str(e)}"
+            return "Loi ket noi API (" + type(e).__name__ + "): " + repr(e)
 
     def _local_response(self, user_message: str, mode: str) -> str:
         """Phản hồi nội bộ khi không có API key (dựa trên từ khóa + KB)."""
