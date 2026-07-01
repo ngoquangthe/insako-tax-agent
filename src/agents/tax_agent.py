@@ -1,6 +1,12 @@
 """AI Agent lõi cho INSAKO Tax Agent – tích hợp Claude API."""
 
 import os
+import sys
+
+# Đảm bảo UTF-8 trên Linux (Streamlit Cloud)
+os.environ.setdefault("PYTHONUTF8", "1")
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+
 from src.utils.helpers import load_all_markdown_from_dir
 from src.services.knowledge_service import KnowledgeService
 
@@ -78,17 +84,28 @@ class TaxAgent:
             context = self._build_context()
             system = self.system_prompt + "\n\n" + context
 
+            # Đảm bảo tất cả chuỗi là UTF-8 sạch trước khi gửi API
+            def to_utf8(s: str) -> str:
+                return s.encode("utf-8", errors="replace").decode("utf-8")
+
+            system = to_utf8(system)
+            clean_history = [
+                {"role": m["role"], "content": to_utf8(m["content"])}
+                for m in self.history
+            ]
+
             response = self._client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
                 system=system,
-                messages=self.history,
+                messages=clean_history,
             )
             answer = response.content[0].text
             self.history.append({"role": "assistant", "content": answer})
             return answer
         except Exception as e:
-            return f"❌ Lỗi kết nối API: {e}\n\nVui lòng kiểm tra API key trong config.json"
+            err = str(e).encode("ascii", errors="replace").decode("ascii")
+            return f"Loi ket noi API: {err}\n\nVui long kiem tra API key trong Streamlit Secrets."
 
     def _local_response(self, user_message: str, mode: str) -> str:
         """Phản hồi nội bộ khi không có API key (dựa trên từ khóa + KB)."""
