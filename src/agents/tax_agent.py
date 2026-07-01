@@ -50,13 +50,13 @@ class TaxAgent:
 === HẾT DỮ LIỆU ===
 """
 
-    def query(self, user_message: str, mode: str = "general") -> str:
+    def query(self, user_message: str, mode: str = "general", file_content: list | None = None) -> str:
         """
         Gửi câu hỏi đến Agent.
 
         mode: "general" | "check_documents" | "generate_checklist"
+        file_content: list of content blocks từ file_processor (ảnh/PDF/Excel)
         """
-        # Thêm prefix hướng dẫn theo mode
         mode_prefix = {
             "general": "",
             "check_documents": (
@@ -71,10 +71,19 @@ class TaxAgent:
             ),
         }
 
-        full_message = mode_prefix.get(mode, "") + user_message
+        prefix = mode_prefix.get(mode, "")
 
-        # Thêm vào lịch sử
-        self.history.append({"role": "user", "content": full_message})
+        if file_content:
+            content = list(file_content)
+            for block in content:
+                if block.get("type") == "text":
+                    block["text"] = prefix + block["text"]
+                    break
+            else:
+                content.insert(0, {"type": "text", "text": prefix})
+            self.history.append({"role": "user", "content": content})
+        else:
+            self.history.append({"role": "user", "content": prefix + user_message})
 
         if self._client:
             return self._call_api()

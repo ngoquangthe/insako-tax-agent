@@ -34,6 +34,7 @@ from src.services.tax_case_service import TaxCaseService
 from src.tools.report_tool import ReportTool
 from src.utils.helpers import format_currency, today_str
 from src.services import supabase_service as supa
+from src.utils.file_processor import build_message_with_file, get_file_type
 
 # ── Cấu hình trang ──────────────────────────────────────────────────────────
 st.set_page_config(
@@ -342,15 +343,35 @@ if page == "💬 Tra cứu AI":
                 st.markdown(msg["content"])
 
     # Input người dùng
+    # Upload file
+    with st.expander("📎 Đính kèm file (ảnh hóa đơn / PDF / Excel)", expanded=False):
+        uploaded_file = st.file_uploader(
+            "Chọn file",
+            type=["jpg", "jpeg", "png", "webp", "pdf", "xlsx", "xls", "csv"],
+            label_visibility="collapsed",
+        )
+        if uploaded_file:
+            ftype = get_file_type(uploaded_file.name, uploaded_file.type or "")
+            icons = {"image": "🖼️ Ảnh", "pdf": "📄 PDF", "excel": "📊 Excel"}
+            st.caption(f"{icons.get(ftype,'📎')} **{uploaded_file.name}** — nhập câu hỏi bên dưới rồi gửi.")
+
     if prompt := st.chat_input("Nhập câu hỏi kế toán – thuế (VD: Chi phí vận chuyển hạt bi thép cần hồ sơ gì?)"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        supa.save_message(_uname, _sid, "user", prompt)
+        file_blocks = None
+        display_note = ""
+        if uploaded_file:
+            file_bytes = uploaded_file.read()
+            file_blocks = build_message_with_file(prompt, file_bytes, uploaded_file.name, uploaded_file.type or "")
+            display_note = f"\n\n📎 *File đính kèm: {uploaded_file.name}*"
+
+        user_display = prompt + display_note
+        st.session_state.messages.append({"role": "user", "content": user_display})
+        supa.save_message(_uname, _sid, "user", user_display)
         with st.chat_message("user", avatar="👤"):
-            st.markdown(prompt)
+            st.markdown(user_display)
 
         with st.chat_message("assistant", avatar="📒"):
             with st.spinner("AI đang phân tích nghiệp vụ..."):
-                response = agent.query(prompt, mode="general")
+                response = agent.query(prompt, mode="general", file_content=file_blocks)
             st.markdown(response)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
