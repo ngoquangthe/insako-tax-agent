@@ -268,6 +268,7 @@ with st.sidebar:
         "💬 Tra cứu AI",
         "✅ Kiểm tra hồ sơ",
         "📋 Tạo checklist",
+        "📅 Kiểm tra định kỳ",
         "➕ Ghi nhận lỗi",
         "📜 Nhật ký lỗi",
         "📊 Báo cáo rủi ro",
@@ -517,7 +518,207 @@ elif page == "📋 Tạo checklist":
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PAGE 4: GHI NHẬN LỖI
+# PAGE 4: KIỂM TRA ĐỊNH KỲ
+# ══════════════════════════════════════════════════════════════════════════════
+elif page == "📅 Kiểm tra định kỳ":
+    st.markdown("## 📅 Kiểm tra định kỳ")
+
+    tab_month, tab_year = st.tabs(["📆 Báo cáo thuế tháng", "📊 Báo cáo tài chính năm"])
+
+    # ── TAB 1: THÁNG ──────────────────────────────────────────────────────────
+    with tab_month:
+        st.caption("Checklist kiểm tra báo cáo thuế hàng tháng – đúng, đủ, kịp thời.")
+
+        col_m1, col_m2 = st.columns([1, 3])
+        with col_m1:
+            now = datetime.now()
+            sel_month = st.selectbox("Tháng", list(range(1, 13)), index=now.month - 2 if now.month > 1 else 0)
+            sel_year = st.number_input("Năm", min_value=2020, max_value=2030, value=now.year, step=1)
+
+        st.markdown("---")
+
+        MONTHLY_CHECKS = {
+            "🔵 VAT ĐẦU VÀO": [
+                "Tổng hợp đủ hóa đơn mua vào trong tháng (hạt bi, phụ tùng, máy móc, dịch vụ)",
+                "Các khoản > 20 triệu đều thanh toán chuyển khoản (không dùng tiền mặt)",
+                "Hóa đơn nhập khẩu khớp với tờ khai hải quan (VAT khâu NK)",
+                "Không kê khai hóa đơn sai tên/MST người mua",
+                "Hóa đơn của kỳ trước (đến muộn) đã xử lý theo quy định",
+            ],
+            "🟢 VAT ĐẦU RA": [
+                "Toàn bộ doanh thu bán máy, phụ tùng, dịch vụ đã xuất hóa đơn",
+                "Hóa đơn xuất đúng tháng phát sinh doanh thu (không trễ kỳ)",
+                "Thông tin hóa đơn đầu ra: tên, MST, địa chỉ KH đúng",
+                "Đối chiếu tổng doanh thu trên hóa đơn = doanh thu ghi nhận sổ",
+            ],
+            "🟡 LƯƠNG & BHXH": [
+                "Bảng lương tháng có chữ ký nhân viên đầy đủ",
+                "Đã tính và khấu trừ TNCN đúng biểu lũy tiến / 10%",
+                "Đã nộp BHXH, BHYT, BHTN đúng hạn (trước ngày 15–20)",
+                "Hợp đồng lao động còn hiệu lực với toàn bộ nhân sự phát sinh lương",
+            ],
+            "🟠 CHI PHÍ KHÁC": [
+                "Công tác phí kỹ thuật viên có quyết định cử đi, bảng kê chi tiết",
+                "Chi tiếp khách có danh sách khách mời, hóa đơn VAT",
+                "Tạm ứng chưa hoàn quá 30 ngày đã nhắc nhở hoàn ứng",
+                "Không có khoản chi tiền mặt > 20 triệu chưa chuyển khoản",
+            ],
+            "🔴 DEADLINE & NỘP THUẾ": [
+                f"Tờ khai VAT tháng {sel_month}/{sel_year} nộp trước ngày 20/{sel_month + 1 if sel_month < 12 else 1}/{sel_year if sel_month < 12 else sel_year + 1}",
+                "Tờ khai TNCN (nếu phát sinh) nộp đúng hạn",
+                "Số thuế VAT phải nộp đã chuyển khoản vào NSNN",
+                "Lưu file tờ khai + biên lai nộp thuế vào hồ sơ tháng",
+            ],
+        }
+
+        total_items = sum(len(v) for v in MONTHLY_CHECKS.values())
+        checked_count = 0
+
+        for section, items in MONTHLY_CHECKS.items():
+            st.markdown(f"**{section}**")
+            for i, item in enumerate(items):
+                key = f"month_{sel_year}_{sel_month}_{section}_{i}"
+                checked = st.checkbox(item, key=key)
+                if checked:
+                    checked_count += 1
+            st.markdown("")
+
+        # Progress bar
+        pct = int(checked_count / total_items * 100)
+        color = "🟢" if pct == 100 else ("🟡" if pct >= 60 else "🔴")
+        st.markdown(f"---\n**Tiến độ: {color} {checked_count}/{total_items} mục ({pct}%)**")
+        st.progress(pct / 100)
+
+        if pct == 100:
+            st.success(f"✅ Hoàn tất kiểm tra tháng {sel_month}/{sel_year}!")
+        elif pct >= 60:
+            st.warning(f"⚠️ Còn {total_items - checked_count} mục chưa hoàn thành.")
+        else:
+            st.error(f"❌ Mới hoàn thành {pct}% — cần xử lý gấp trước deadline.")
+
+        st.markdown("---")
+        if st.button("🤖 Hỏi AI về mục chưa hoàn thành", key="ai_month"):
+            unchecked = [item for section, items in MONTHLY_CHECKS.items() for i, item in enumerate(items)
+                         if not st.session_state.get(f"month_{sel_year}_{sel_month}_{section}_{i}", False)]
+            if unchecked:
+                q = f"Tháng {sel_month}/{sel_year} còn {len(unchecked)} mục chưa hoàn thành:\n" + "\n".join(f"- {x}" for x in unchecked) + "\n\nHướng dẫn cách xử lý nhanh nhất."
+                with st.spinner("AI đang phân tích..."):
+                    resp = agent.query(q)
+                st.markdown(resp)
+            else:
+                st.success("Tất cả đã hoàn thành!")
+
+    # ── TAB 2: NĂM ────────────────────────────────────────────────────────────
+    with tab_year:
+        st.caption("Checklist kiểm tra báo cáo tài chính cuối năm – chuẩn bị quyết toán thuế TNDN.")
+
+        sel_year_annual = st.number_input("Năm tài chính", min_value=2020, max_value=2030,
+                                          value=datetime.now().year - 1, step=1, key="annual_year")
+
+        st.markdown("---")
+
+        ANNUAL_CHECKS = {
+            "📋 CHUẨN BỊ SỐ LIỆU": [
+                "Đối chiếu tổng doanh thu năm: hóa đơn đầu ra = sổ doanh thu",
+                "Đối chiếu tổng chi phí: chứng từ gốc = sổ chi phí",
+                "Kiểm tra số dư công nợ phải thu (khách hàng mua máy, dịch vụ)",
+                "Kiểm tra số dư công nợ phải trả (nhà cung cấp hạt bi, phụ tùng)",
+                "Kiểm tra tồn kho: kiểm kê thực tế = sổ tồn kho",
+                "Đối chiếu số dư tiền mặt, tiền gửi ngân hàng cuối năm",
+            ],
+            "💰 DOANH THU & CHI PHÍ": [
+                "Doanh thu bán máy phun bi, phụ tùng ghi nhận đúng kỳ",
+                "Doanh thu dịch vụ bảo trì, lắp đặt ghi nhận theo tiến độ",
+                "Chi phí giá vốn hàng bán tính đúng (nhập – xuất – tồn)",
+                "Chi phí lương, BHXH toàn năm khớp với bảng lương + quyết toán TNCN",
+                "Chi phí công tác phí kỹ thuật viên đủ hồ sơ theo quy định",
+                "Chi phí tiếp khách không vượt 15% tổng chi phí được trừ",
+                "Chi phí khấu hao TSCĐ tính đúng (máy móc, phương tiện vận tải)",
+                "Chi phí lãi vay (nếu có) có hợp đồng, không vượt trần lãi suất",
+            ],
+            "🏦 TÀI SẢN & CÔNG NỢ": [
+                "Kiểm tra TSCĐ: có đủ hồ sơ mua, đang còn khấu hao, không thanh lý thiếu thủ tục",
+                "Trích lập dự phòng nợ phải thu khó đòi (nếu có KH nợ quá hạn)",
+                "Trích lập dự phòng giảm giá hàng tồn kho (nếu cần)",
+                "Phân loại đúng nợ ngắn hạn / dài hạn",
+                "Số dư tạm ứng đã được hoàn ứng hoặc hạch toán chi phí đúng",
+            ],
+            "📑 QUYẾT TOÁN THUẾ": [
+                "Lập tờ khai quyết toán TNDN (hạn: 90 ngày sau ngày kết thúc năm tài chính)",
+                "Loại trừ các chi phí không được trừ: quà tặng không có HĐ, phạt vi phạm...",
+                "Kiểm tra ưu đãi thuế TNDN (nếu có: dự án đầu tư mới, địa bàn...)",
+                "Quyết toán TNCN: đã cấp chứng từ khấu trừ cho nhân viên",
+                "Kê khai thuế nhà thầu nước ngoài (nếu có thanh toán cho đối tác nước ngoài)",
+                "Nộp báo cáo tài chính lên Cục thuế + Sở KH&ĐT đúng hạn",
+            ],
+            "✅ HỒ SƠ LƯU TRỮ": [
+                "Đóng gói, lưu trữ chứng từ gốc theo từng tháng (tối thiểu 10 năm)",
+                "File mềm tờ khai thuế tháng, quý, năm lưu đầy đủ",
+                "Biên lai nộp thuế các loại lưu đầy đủ",
+                "Báo cáo tài chính đã ký, đóng dấu lưu bản gốc",
+            ],
+        }
+
+        total_annual = sum(len(v) for v in ANNUAL_CHECKS.values())
+        checked_annual = 0
+
+        for section, items in ANNUAL_CHECKS.items():
+            st.markdown(f"**{section}**")
+            for i, item in enumerate(items):
+                key = f"annual_{sel_year_annual}_{section}_{i}"
+                checked = st.checkbox(item, key=key)
+                if checked:
+                    checked_annual += 1
+            st.markdown("")
+
+        pct_a = int(checked_annual / total_annual * 100)
+        color_a = "🟢" if pct_a == 100 else ("🟡" if pct_a >= 60 else "🔴")
+        st.markdown(f"---\n**Tiến độ: {color_a} {checked_annual}/{total_annual} mục ({pct_a}%)**")
+        st.progress(pct_a / 100)
+
+        if pct_a == 100:
+            st.success(f"✅ Hoàn tất kiểm tra báo cáo tài chính năm {sel_year_annual}!")
+        elif pct_a >= 60:
+            st.warning(f"⚠️ Còn {total_annual - checked_annual} mục cần xử lý trước khi quyết toán.")
+        else:
+            st.error(f"❌ Mới hoàn thành {pct_a}% — cần ưu tiên xử lý gấp.")
+
+        # Export checklist
+        st.markdown("---")
+        col_e1, col_e2 = st.columns(2)
+        with col_e1:
+            if st.button("🤖 Hỏi AI về mục chưa xong", key="ai_annual"):
+                unchecked_a = [item for section, items in ANNUAL_CHECKS.items() for i, item in enumerate(items)
+                               if not st.session_state.get(f"annual_{sel_year_annual}_{section}_{i}", False)]
+                if unchecked_a:
+                    q = f"Quyết toán năm {sel_year_annual} còn {len(unchecked_a)} mục chưa hoàn thành:\n" + "\n".join(f"- {x}" for x in unchecked_a[:10]) + "\n\nHướng dẫn cách xử lý theo thứ tự ưu tiên."
+                    with st.spinner("AI đang phân tích..."):
+                        resp = agent.query(q)
+                    st.markdown(resp)
+                else:
+                    st.success("Tất cả đã hoàn thành!")
+
+        with col_e2:
+            # Export báo cáo tiến độ
+            export_lines = [f"# KIỂM TRA BÁO CÁO TÀI CHÍNH NĂM {sel_year_annual}\n"]
+            for section, items in ANNUAL_CHECKS.items():
+                export_lines.append(f"\n## {section}")
+                for i, item in enumerate(items):
+                    done = st.session_state.get(f"annual_{sel_year_annual}_{section}_{i}", False)
+                    export_lines.append(f"{'☑' if done else '☐'} {item}")
+            export_lines.append(f"\n---\nTiến độ: {checked_annual}/{total_annual} ({pct_a}%)")
+            export_text = "\n".join(export_lines)
+            st.download_button(
+                "⬇️ Xuất checklist (.md)",
+                data=export_text.encode("utf-8"),
+                file_name=f"checklist_quyet_toan_{sel_year_annual}.md",
+                mime="text/markdown",
+                use_container_width=True,
+            )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 5: GHI NHẬN LỖI
 # ══════════════════════════════════════════════════════════════════════════════
 elif page == "➕ Ghi nhận lỗi":
     st.markdown("## ➕ Ghi nhận lỗi quyết toán thuế")
