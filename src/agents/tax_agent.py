@@ -31,7 +31,7 @@ class TaxAgent:
 
         ai_cfg = config.get("ai", {})
         self.model = ai_cfg.get("model", "claude-sonnet-4-6")
-        self.max_tokens = ai_cfg.get("max_tokens", 4096)
+        self.max_tokens = ai_cfg.get("max_tokens", 8192)
         self.api_key = ai_cfg.get("api_key", os.environ.get("ANTHROPIC_API_KEY", ""))
 
         # Làm sạch API key: chỉ giữ ký tự ASCII thuần (tránh lỗi encoding khi copy-paste)
@@ -118,6 +118,12 @@ class TaxAgent:
                 return "Loi API: " + str(result.get("error", result))
 
             answer = result["content"][0]["text"]
+
+            # Cảnh báo nếu bị cắt do hết token
+            stop_reason = result.get("stop_reason", "")
+            if stop_reason == "max_tokens":
+                answer += "\n\n---\n⚠️ **Nội dung bị cắt do quá dài.** Hãy hỏi cụ thể hơn hoặc chia nhỏ câu hỏi để nhận đầy đủ thông tin."
+
             self.history.append({"role": "assistant", "content": answer})
             return answer
 
