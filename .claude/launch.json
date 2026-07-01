@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "insako-tax-agent",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "streamlit", "run", "app.py", "--server.port", "8501", "--browser.gatherUsageStats", "false", "--server.headless", "true"],
+      "port": 8501
+    }
+  ]
+}

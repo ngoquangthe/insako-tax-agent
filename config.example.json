@@ -1,0 +1,64 @@
+{
+  "app": {
+    "name": "INSAKO Tax Agent",
+    "version": "1.0.0",
+    "language": "vi",
+    "company": "Công ty CP Đầu tư và Thương mại Thế Nam",
+    "company_short": "INSAKO",
+    "tax_code": "YOUR_TAX_CODE_HERE"
+  },
+  "ai": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "api_key": "YOUR_ANTHROPIC_API_KEY_HERE",
+    "max_tokens": 4096,
+    "temperature": 0.1,
+    "system_prompt_file": "src/prompts/system_prompt.md"
+  },
+  "paths": {
+    "knowledge_base": "data/knowledge_base",
+    "checklists": "data/checklists",
+    "templates": "data/templates",
+    "tax_cases": "data/tax_cases",
+    "accounting_rules": "data/accounting_rules",
+    "legal_references": "data/legal_references",
+    "outputs": "outputs"
+  },
+  "database": {
+    "type": "json",
+    "tax_cases_file": "data/tax_cases/cases_db.json",
+    "upgrade_to": "sqlite"
+  },
+  "features": {
+    "query_business": true,
+    "check_documents": true,
+    "generate_checklist": true,
+    "log_tax_errors": true,
+    "view_error_list": true,
+    "export_risk_report": true
+  },
+  "thresholds": {
+    "cash_payment_limit": 20000000,
+    "tscdd_min_value": 30000000,
+    "entertainment_max_percent": 15,
+    "meal_allowance_max_monthly": 730000,
+    "advance_max_days": 30
+  },
+  "tax_rates": {
+    "vat_standard": 10,
+    "vat_reduced": 8,
+    "corporate_tax": 20,
+    "pit_flat_rate_freelancer": 10,
+    "bhxh_employer": 17.5,
+    "bhxh_employee": 8,
+    "bhyt_employer": 3,
+    "bhyt_employee": 1.5,
+    "bhtn_employer": 1,
+    "bhtn_employee": 1
+  },
+  "output": {
+    "date_format": "%d/%m/%Y",
+    "currency": "VND",
+    "export_formats": ["markdown", "json", "txt"]
+  }
+}

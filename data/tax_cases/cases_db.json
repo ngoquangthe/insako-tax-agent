@@ -1,0 +1,122 @@
+{
+  "version": "1.0",
+  "company": "INSAKO",
+  "last_updated": "2026-07-01",
+  "cases": [
+    {
+      "id": "CASE-2025-001",
+      "stt": 1,
+      "date_found": "2025-03-15",
+      "found_by": "Kế toán trưởng",
+      "source": "Kiểm toán nội bộ",
+      "business_type": "Chi phí tiếp khách",
+      "period": "2024",
+      "description": "Chi phí tiếp khách 45 triệu đồng không có danh sách khách mời",
+      "department": ["Kinh doanh", "Kế toán"],
+      "root_cause": "Nhân viên không biết quy định, chưa có quy trình kiểm soát",
+      "tax_risks": {
+        "vat": "Trung bình",
+        "tndn": "Cao",
+        "tncn": "Không",
+        "bhxh": "Không"
+      },
+      "amount_affected": 45000000,
+      "tax_amount": 9900000,
+      "penalty": 0,
+      "late_payment": 0,
+      "total_loss": 9900000,
+      "current_handling": "Bổ sung danh sách khách mời từ ghi chú, chấp nhận một phần",
+      "prevention": [
+        "Ban hành mẫu Biên bản tiếp khách",
+        "Quy định: mọi HĐ tiếp khách > 2 triệu phải kèm danh sách",
+        "Kế toán không nhận HĐ thiếu danh sách"
+      ],
+      "process_to_fix": "Quy trình tiếp khách",
+      "responsible": "Kế toán trưởng + Trưởng phòng KD",
+      "status": "Đã xử lý",
+      "notes": "Đã ban hành mẫu mới từ 2025"
+    },
+    {
+      "id": "CASE-2025-002",
+      "stt": 2,
+      "date_found": "2025-04-10",
+      "found_by": "Cơ quan thuế",
+      "source": "Thanh tra thuế",
+      "business_type": "Chi phí vận chuyển",
+      "period": "2024",
+      "description": "Thuê vận chuyển 25 triệu thanh toán tiền mặt, vẫn kê khai khấu trừ VAT",
+      "department": ["Logistics", "Kế toán"],
+      "root_cause": "Logistics không biết quy định; kế toán không kiểm tra hình thức TT",
+      "tax_risks": {
+        "vat": "Cao",
+        "tndn": "Cao",
+        "tncn": "Không",
+        "bhxh": "Không"
+      },
+      "amount_affected": 25000000,
+      "tax_amount": 2500000,
+      "penalty": 500000,
+      "late_payment": 200000,
+      "total_loss": 3200000,
+      "current_handling": "Nộp truy thu + phạt + tiền chậm nộp",
+      "prevention": [
+        "Cấm TM > 20 triệu trong quy định nội bộ",
+        "Kế toán không nhận HĐ nếu không có chứng từ CK",
+        "Đào tạo bộ phận logistics"
+      ],
+      "process_to_fix": "Quy trình thanh toán",
+      "responsible": "Kế toán trưởng",
+      "status": "Đã xử lý",
+      "notes": "Đã ban hành quy định thanh toán nội bộ"
+    },
+    {
+      "id": "CASE-2025-003",
+      "stt": 3,
+      "date_found": "2025-05-20",
+      "found_by": "Kế toán trưởng",
+      "source": "Tự kiểm tra",
+      "business_type": "Lương KPI",
+      "period": "2024",
+      "description": "KPI Q1-Q2/2024 chi trả khi chưa có quy chế ban hành",
+      "department": ["Nhân sự", "Kinh doanh", "Kế toán"],
+      "root_cause": "Chưa ban hành quy chế KPI từ đầu năm; CEO quyết định ad-hoc",
+      "tax_risks": {
+        "vat": "Không",
+        "tndn": "Cao",
+        "tncn": "Thấp",
+        "bhxh": "Không"
+      },
+      "amount_affected": 90000000,
+      "tax_amount": 19800000,
+      "penalty": 3960000,
+      "late_payment": 0,
+      "total_loss": 23760000,
+      "current_handling": "Tự điều chỉnh bổ sung thuế TNDN cho Q1,Q2",
+      "prevention": [
+        "Ban hành quy chế KPI trước 31/12 hàng năm",
+        "Kế toán kiểm tra quy chế trước khi hạch toán KPI",
+        "Lưu trữ quy chế có dấu công ty"
+      ],
+      "process_to_fix": "Quy trình ban hành chính sách nhân sự",
+      "responsible": "GĐ + KTT + Nhân sự",
+      "status": "Đang theo dõi",
+      "notes": "Đã ban hành quy chế 2026, kiểm tra Q1/2026"
+    }
+  ],
+  "summary": {
+    "total_cases": 3,
+    "total_loss_estimated": 36860000,
+    "by_status": {
+      "Mới phát hiện": 0,
+      "Đang xử lý": 1,
+      "Đã xử lý": 2,
+      "Đang theo dõi": 1
+    },
+    "by_tax_type": {
+      "VAT": 1,
+      "TNDN": 3,
+      "TNCN": 0,
+      "BHXH": 0
+    }
+  }
+}

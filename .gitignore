@@ -1,0 +1,26 @@
+# Bảo mật – KHÔNG đưa lên GitHub
+config.json
+auth.json
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Outputs
+outputs/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Streamlit secrets (chứa API key – KHÔNG đưa lên GitHub)
+.streamlit/secrets.toml
+.streamlit/cache/
