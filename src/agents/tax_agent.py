@@ -79,33 +79,47 @@ class TaxAgent:
             return self._local_response(user_message, mode)
 
     def _call_api(self) -> str:
-        """Gọi Claude API."""
+        """Gọi Claude API trực tiếp bằng requests (tránh lỗi encoding của httpx)."""
         try:
+            import json as _json
+            import urllib.request
+            import urllib.error
+
             context = self._build_context()
             system = self.system_prompt + "\n\n" + context
 
-            # Đảm bảo tất cả chuỗi là UTF-8 sạch trước khi gửi API
-            def to_utf8(s: str) -> str:
-                return s.encode("utf-8", errors="replace").decode("utf-8")
+            payload = {
+                "model": self.model,
+                "max_tokens": self.max_tokens,
+                "system": system,
+                "messages": self.history,
+            }
 
-            system = to_utf8(system)
-            clean_history = [
-                {"role": m["role"], "content": to_utf8(m["content"])}
-                for m in self.history
-            ]
+            body = _json.dumps(payload, ensure_ascii=False).encode("utf-8")
 
-            response = self._client.messages.create(
-                model=self.model,
-                max_tokens=self.max_tokens,
-                system=system,
-                messages=clean_history,
+            req = urllib.request.Request(
+                "https://api.anthropic.com/v1/messages",
+                data=body,
+                headers={
+                    "x-api-key": self.api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json; charset=utf-8",
+                },
+                method="POST",
             )
-            answer = response.content[0].text
+
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                result = _json.loads(resp.read().decode("utf-8"))
+
+            answer = result["content"][0]["text"]
             self.history.append({"role": "assistant", "content": answer})
             return answer
+
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", errors="replace")
+            return f"❌ Lỗi API ({e.code}): {detail}"
         except Exception as e:
-            err = str(e).encode("ascii", errors="replace").decode("ascii")
-            return f"Loi ket noi API: {err}\n\nVui long kiem tra API key trong Streamlit Secrets."
+            return f"❌ Lỗi kết nối: {type(e).__name__}: {str(e)}"
 
     def _local_response(self, user_message: str, mode: str) -> str:
         """Phản hồi nội bộ khi không có API key (dựa trên từ khóa + KB)."""
