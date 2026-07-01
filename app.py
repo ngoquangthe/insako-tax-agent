@@ -33,6 +33,7 @@ from src.services.auth_service import (
     hash_password as _auth_hash, verify_password as _auth_verify,
     get_supabase_password_hash, save_new_password,
     create_otp, verify_otp, send_otp_email, get_user_email,
+    send_otp_sms, get_user_phone, _mask_phone,
 )
 from src.agents.tax_agent import TaxAgent
 from src.services.tax_case_service import TaxCaseService
@@ -91,13 +92,15 @@ def _check_login(username: str, password: str, users: dict) -> bool:
 
 
 def _forgot_password_ui():
-    """Luồng quên mật khẩu: nhập username → gửi OTP email → đặt mật khẩu mới."""
+    """Quên mật khẩu: chọn kênh (SMS/email) → gửi OTP → đặt mật khẩu mới."""
     step = st.session_state.get("fp_step", 1)
 
     if step == 1:
         st.markdown("**Bước 1 – Nhập tên đăng nhập**")
-        fp_user = st.text_input("Username", key="fp_username", placeholder="Nhập username của bạn...")
-        if st.button("📧 Gửi mã OTP", key="fp_send"):
+        fp_user = st.text_input("Username", key="fp_username", placeholder="Nhập username...")
+        channel = st.radio("Nhận mã OTP qua", ["📱 SMS", "📧 Email"], key="fp_channel", horizontal=True)
+
+        if st.button("🔑 Gửi mã OTP", key="fp_send", type="primary"):
             if not fp_user.strip():
                 st.error("Vui lòng nhập username.")
                 return
@@ -106,38 +109,53 @@ def _forgot_password_ui():
             if uname not in users:
                 st.error("❌ Không tìm thấy tài khoản này.")
                 return
-            email = get_user_email(uname)
-            if not email:
-                st.warning("⚠️ Tài khoản chưa có email. Liên hệ admin để đặt lại.")
-                return
+
             otp = create_otp(uname)
             if not otp:
                 st.error("Lỗi kết nối Supabase. Thử lại sau.")
                 return
-            ok = send_otp_email(email, uname, otp)
-            if ok:
-                # Ẩn bớt email để bảo mật: abc***@gmail.com
+
+            if "SMS" in channel:
+                phone = get_user_phone(uname)
+                if not phone:
+                    st.warning("⚠️ Tài khoản chưa có số điện thoại. Chọn Email hoặc liên hệ admin.")
+                    return
+                ok = send_otp_sms(phone, otp)
+                masked = _mask_phone(phone)
+                channel_label = f"SMS đến **{masked}**"
+            else:
+                email = get_user_email(uname)
+                if not email:
+                    st.warning("⚠️ Tài khoản chưa có email. Chọn SMS hoặc liên hệ admin.")
+                    return
+                ok = send_otp_email(email, uname, otp)
                 parts = email.split("@")
                 masked = parts[0][:3] + "***@" + parts[1] if len(parts) == 2 else email
-                st.session_state["fp_step"] = 2
-                st.session_state["fp_user"] = uname
-                st.session_state["fp_masked_email"] = masked
+                channel_label = f"Email đến **{masked}**"
+
+            if ok:
+                st.session_state.update({
+                    "fp_step": 2,
+                    "fp_user": uname,
+                    "fp_channel_label": channel_label,
+                })
                 st.rerun()
             else:
-                st.error("❌ Gửi email thất bại. Kiểm tra cấu hình SMTP trong Secrets.")
+                st.error("❌ Gửi thất bại. Kiểm tra cấu hình TWILIO/SMTP trong Streamlit Secrets.")
 
     elif step == 2:
-        masked = st.session_state.get("fp_masked_email", "")
+        label = st.session_state.get("fp_channel_label", "")
         uname = st.session_state.get("fp_user", "")
-        st.success(f"✅ Đã gửi mã OTP đến **{masked}**. Kiểm tra hộp thư (kể cả Spam).")
+        st.success(f"✅ Đã gửi mã OTP đến {label}.")
         st.markdown("**Bước 2 – Nhập mã OTP và mật khẩu mới**")
-        otp_input = st.text_input("Mã OTP (6 số)", key="fp_otp", placeholder="Nhập mã từ email...")
+
+        otp_input = st.text_input("Mã OTP (6 số)", key="fp_otp", placeholder="Nhập mã vừa nhận...")
         new_pw1 = st.text_input("Mật khẩu mới", type="password", key="fp_pw1")
         new_pw2 = st.text_input("Xác nhận mật khẩu", type="password", key="fp_pw2")
 
         col_a, col_b = st.columns(2)
         with col_a:
-            if st.button("✅ Xác nhận đổi mật khẩu", key="fp_confirm", type="primary"):
+            if st.button("✅ Xác nhận", key="fp_confirm", type="primary"):
                 if not otp_input.strip():
                     st.error("Vui lòng nhập mã OTP.")
                 elif not new_pw1 or len(new_pw1) < 6:
@@ -145,19 +163,18 @@ def _forgot_password_ui():
                 elif new_pw1 != new_pw2:
                     st.error("❌ Mật khẩu xác nhận không khớp.")
                 elif not verify_otp(uname, otp_input.strip()):
-                    st.error("❌ Mã OTP sai hoặc đã hết hạn. Thử gửi lại.")
+                    st.error("❌ Mã OTP sai hoặc hết hạn (10 phút). Thử gửi lại.")
                 else:
-                    ok = save_new_password(uname, _hash_password(new_pw1))
-                    if ok:
+                    if save_new_password(uname, _hash_password(new_pw1)):
                         st.success("✅ Đặt lại mật khẩu thành công! Đăng nhập lại.")
-                        for k in ["fp_step", "fp_user", "fp_masked_email"]:
+                        for k in ["fp_step", "fp_user", "fp_channel_label"]:
                             st.session_state.pop(k, None)
                         st.rerun()
                     else:
                         st.error("Lỗi lưu mật khẩu. Thử lại.")
         with col_b:
-            if st.button("↩️ Gửi lại OTP", key="fp_resend"):
-                for k in ["fp_step", "fp_user", "fp_masked_email"]:
+            if st.button("↩️ Gửi lại", key="fp_resend"):
+                for k in ["fp_step", "fp_user", "fp_channel_label"]:
                     st.session_state.pop(k, None)
                 st.rerun()
 

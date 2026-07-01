@@ -209,3 +209,63 @@ def get_user_email(username: str) -> str:
     except Exception:
         pass
     return ""
+
+
+def get_user_phone(username: str) -> str:
+    """Lấy số điện thoại của user từ st.secrets."""
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and "users" in st.secrets:
+            user = st.secrets["users"].get(username, {})
+            return user.get("phone", "")
+    except Exception:
+        pass
+    return ""
+
+
+def _mask_phone(phone: str) -> str:
+    """Ẩn giữa số điện thoại: 0912***789"""
+    phone = phone.strip()
+    if len(phone) >= 7:
+        return phone[:4] + "***" + phone[-3:]
+    return phone[:2] + "***"
+
+
+# ── SMS via Twilio ────────────────────────────────────────────────────────────
+
+def _twilio_config() -> dict:
+    try:
+        import streamlit as st
+        return {
+            "sid": st.secrets.get("TWILIO_SID", ""),
+            "token": st.secrets.get("TWILIO_TOKEN", ""),
+            "from": st.secrets.get("TWILIO_FROM", ""),
+        }
+    except Exception:
+        return {"sid": "", "token": "", "from": ""}
+
+
+def send_otp_sms(to_phone: str, otp: str) -> bool:
+    """Gửi OTP qua SMS dùng Twilio."""
+    cfg = _twilio_config()
+    if not cfg["sid"] or not cfg["token"] or not cfg["from"]:
+        return False
+
+    # Chuẩn hóa số điện thoại sang định dạng quốc tế
+    phone = to_phone.strip().replace(" ", "").replace("-", "")
+    if phone.startswith("0"):
+        phone = "+84" + phone[1:]
+    elif not phone.startswith("+"):
+        phone = "+84" + phone
+
+    try:
+        from twilio.rest import Client
+        client = Client(cfg["sid"], cfg["token"])
+        client.messages.create(
+            body=f"[INSAKO Tax Agent] Ma xac thuc: {otp}\nCo hieu luc 10 phut. Khong chia se ma nay.",
+            from_=cfg["from"],
+            to=phone,
+        )
+        return True
+    except Exception:
+        return False
