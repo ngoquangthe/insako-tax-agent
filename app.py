@@ -287,7 +287,8 @@ st.markdown(f"""
 [data-testid="stMain"] {{ background: transparent; }}
 .main .block-container {{
     background: transparent;
-    padding: 1.5rem 2rem 5rem;
+    padding: 1rem 0.75rem 5rem !important;
+    max-width: 100% !important;
 }}
 
 /* ── Chữ toàn cục ── */
@@ -502,6 +503,24 @@ hr {{ border-color: rgba(255,255,255,0.15) !important; }}
     border-color: rgba(255,255,255,0.2) !important;
     color: #e8edf8 !important;
     border-radius: 10px !important;
+}}
+
+/* ── Code block trong chat: không tràn ngang ── */
+[data-testid="stChatMessageContent"] pre {{
+    overflow-x: auto !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+    background: rgba(0,0,0,0.35) !important;
+    border: 1px solid rgba(196,18,48,0.3) !important;
+    border-radius: 8px !important;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+}}
+[data-testid="stChatMessageContent"] pre code {{
+    color: #ffb3be !important;
+    background: transparent !important;
 }}
 
 /* ── MOBILE RESPONSIVE ── */
