@@ -79,10 +79,9 @@ class TaxAgent:
             return self._local_response(user_message, mode)
 
     def _call_api(self) -> str:
-        """Gọi Claude API qua socket TCP – tránh mọi vấn đề encoding của urllib/httpx."""
+        """Gọi Claude API dùng requests – xử lý UTF-8 đúng trên mọi môi trường."""
         import json as _json
-        import socket
-        import ssl
+        import requests
 
         try:
             context = self._build_context()
@@ -95,52 +94,18 @@ class TaxAgent:
                 "messages": self.history,
             }
 
-            # ensure_ascii=True: toàn bộ body là ASCII thuần (Unicode escape \uXXXX)
-            # API Claude vẫn decode đúng, response trả về UTF-8 bình thường
-            body_str = _json.dumps(payload, ensure_ascii=True)
-            body_bytes = body_str.encode("ascii")
-
-            headers = (
-                f"POST /v1/messages HTTP/1.1\r\n"
-                f"Host: api.anthropic.com\r\n"
-                f"x-api-key: {self.api_key}\r\n"
-                f"anthropic-version: 2023-06-01\r\n"
-                f"content-type: application/json\r\n"
-                f"content-length: {len(body_bytes)}\r\n"
-                f"connection: close\r\n"
-                f"\r\n"
+            resp = requests.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": self.api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                data=_json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                timeout=60,
             )
 
-            ctx = ssl.create_default_context()
-            with socket.create_connection(("api.anthropic.com", 443), timeout=60) as raw:
-                with ctx.wrap_socket(raw, server_hostname="api.anthropic.com") as sock:
-                    sock.sendall(headers.encode("ascii") + body_bytes)
-
-                    # Đọc toàn bộ response
-                    chunks = []
-                    while True:
-                        chunk = sock.recv(4096)
-                        if not chunk:
-                            break
-                        chunks.append(chunk)
-
-            raw_response = b"".join(chunks).decode("utf-8", errors="replace")
-
-            # Tách HTTP header và body
-            if "\r\n\r\n" in raw_response:
-                _, body_part = raw_response.split("\r\n\r\n", 1)
-            else:
-                body_part = raw_response
-
-            # Xử lý chunked transfer encoding nếu có
-            body_part = body_part.strip()
-            if "\r\n" in body_part:
-                # chunked: bỏ qua chunk-size lines
-                lines = body_part.split("\r\n")
-                json_lines = [l for l in lines if l and not all(c in "0123456789abcdefABCDEF" for c in l)]
-                body_part = "".join(json_lines)
-
-            result = _json.loads(body_part)
+            result = resp.json()
 
             if "error" in result:
                 return f"❌ Lỗi API: {result['error'].get('message', str(result['error']))}"
