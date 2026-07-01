@@ -45,7 +45,7 @@ class TaxAgent:
         """Xây dựng context từ knowledge base để đưa vào prompt."""
         return f"""
 === DỮ LIỆU SỔ TAY NỘI BỘ INSAKO ===
-{self.kb_content[:6000]}
+{self.kb_content[:3000]}
 
 === HẾT DỮ LIỆU ===
 """
@@ -101,7 +101,7 @@ class TaxAgent:
             # body hoàn toàn là ASCII bytes – không có tầng nào encode latin-1
             body_bytes = _json.dumps(payload, ensure_ascii=True).encode("ascii")
 
-            with httpx.Client(timeout=60) as client:
+            with httpx.Client(timeout=120) as client:
                 resp = client.post(
                     "https://api.anthropic.com/v1/messages",
                     headers={
