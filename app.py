@@ -402,15 +402,41 @@ input::placeholder, textarea::placeholder {{ color: #7a93bf !important; }}
 }}
 
 /* ── Chat input box ── */
+[data-testid="stBottom"] {{
+    background: linear-gradient(0deg, #0a1a40 80%, transparent) !important;
+    padding: 0.75rem 1.5rem 1rem !important;
+    left: 0 !important; right: 0 !important;
+    width: 100% !important;
+}}
+[data-testid="stBottom"] > div {{
+    max-width: 100% !important;
+    width: 100% !important;
+}}
+[data-testid="stChatInput"] {{
+    width: 100% !important;
+    max-width: 100% !important;
+}}
 [data-testid="stChatInput"] textarea {{
     background: rgba(255,255,255,0.1) !important;
     color: #ffffff !important;
-    border: 1px solid rgba(196,18,48,0.5) !important;
+    border: 2px solid rgba(196,18,48,0.6) !important;
     border-radius: 12px !important;
+    min-height: 54px !important;
+    font-size: 15px !important;
+    padding: 14px 60px 14px 16px !important;
+    line-height: 1.5 !important;
+    width: 100% !important;
+}}
+[data-testid="stChatInput"] textarea::placeholder {{ color: #7a93bf !important; }}
+[data-testid="stChatInput"] textarea:focus {{
+    border-color: #C41230 !important;
+    box-shadow: 0 0 0 3px rgba(196,18,48,0.2) !important;
+    outline: none !important;
 }}
 [data-testid="stChatInput"] button {{
     background: #C41230 !important;
     border-radius: 8px !important;
+    width: 44px !important; height: 44px !important;
 }}
 
 /* ── Card ── */
