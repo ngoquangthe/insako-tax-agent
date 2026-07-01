@@ -47,7 +47,7 @@ st.set_page_config(
     page_title="INSAKO Tax Agent",
     page_icon="📒",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 
@@ -280,11 +280,9 @@ st.markdown(f"""
 [data-testid="stSidebar"] .stRadio label {{ font-size: 14px; }}
 [data-testid="stSidebar"] hr {{ border-color: #2d4f9e !important; }}
 [data-testid="stSidebar"] .stButton button {{
-    background: #C41230 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
+    background: #C41230 !important; color: white !important;
+    border: none !important; border-radius: 8px !important;
+    font-weight: 600 !important; min-height: 44px !important;
 }}
 
 /* Dải màu trên đầu sidebar */
@@ -292,28 +290,25 @@ st.markdown(f"""
     background: linear-gradient(180deg, #152f6b 0%, #1B3A7A 100%);
     padding: 1rem 0.5rem 0.75rem;
     margin: -1rem -1rem 0.5rem;
-    border-bottom: 3px solid #C41230;
-    text-align: center;
+    border-bottom: 3px solid #C41230; text-align: center;
 }}
-.sidebar-app-name {{
-    font-size: 13px; font-weight: 700; color: #ffffff !important;
-    letter-spacing: 0.5px; margin-top: 4px;
-}}
-.sidebar-app-sub {{
-    font-size: 11px; color: #a0b4d6 !important; margin-top: 1px;
-}}
+.sidebar-app-name {{ font-size: 13px; font-weight: 700; color: #ffffff !important; letter-spacing: 0.5px; margin-top: 4px; }}
+.sidebar-app-sub  {{ font-size: 11px; color: #a0b4d6 !important; margin-top: 1px; }}
 
 /* Nút primary toàn app */
 div[data-testid="stButton"] > button[kind="primary"],
 div.stButton > button[kind="primary"] {{
-    background: #C41230 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 8px !important;
+    background: #C41230 !important; color: white !important;
+    border: none !important; border-radius: 8px !important;
     font-weight: 600 !important;
 }}
-div[data-testid="stButton"] > button[kind="primary"]:hover {{
-    background: #a50e27 !important;
+div[data-testid="stButton"] > button[kind="primary"]:hover {{ background: #a50e27 !important; }}
+
+/* Tất cả button: tap target tối thiểu 44px */
+div[data-testid="stButton"] > button,
+div.stButton > button {{
+    min-height: 44px !important;
+    font-size: 14px !important;
 }}
 
 /* Card */
@@ -322,9 +317,7 @@ div[data-testid="stButton"] > button[kind="primary"]:hover {{
     padding: 1.2rem 1.5rem; border: 1px solid #dde3f0;
     margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(27,58,122,0.07);
 }}
-.insako-card-title {{
-    font-size: 15px; font-weight: 600; color: #1B3A7A; margin-bottom: 0.5rem;
-}}
+.insako-card-title {{ font-size: 15px; font-weight: 600; color: #1B3A7A; margin-bottom: 0.5rem; }}
 
 /* Header accent bar */
 h1, h2 {{ color: #1B3A7A !important; }}
@@ -333,7 +326,7 @@ h2::after {{
     background: #C41230; border-radius: 2px; margin-top: 6px;
 }}
 
-/* Chat bubble */
+/* Chat bubble – desktop */
 .chat-user {{
     background: #1B3A7A; color: white;
     border-radius: 16px 16px 4px 16px;
@@ -344,8 +337,7 @@ h2::after {{
     background: white; color: #1B3A7A;
     border-radius: 16px 16px 16px 4px;
     padding: 0.8rem 1.2rem; margin: 0.5rem 20% 0.5rem 0;
-    font-size: 14px; line-height: 1.6;
-    border: 1px solid #dde3f0;
+    font-size: 14px; line-height: 1.6; border: 1px solid #dde3f0;
 }}
 
 /* Metric card */
@@ -363,6 +355,58 @@ h2::after {{
     display:inline-block; background:#eef1fb; color:#1B3A7A;
     border-radius:20px; padding:4px 12px; font-size:13px;
     margin:3px; border:1px solid #c5cfe8;
+}}
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {{
+
+    /* Content area: bỏ padding thừa */
+    .main .block-container {{
+        padding: 0.75rem 0.75rem 5rem !important;
+        max-width: 100% !important;
+    }}
+
+    /* Tiêu đề nhỏ hơn */
+    h1 {{ font-size: 20px !important; }}
+    h2 {{ font-size: 17px !important; }}
+    h3 {{ font-size: 15px !important; }}
+
+    /* Chat bubble full width trên mobile */
+    .chat-user {{
+        margin: 0.4rem 0 0.4rem 8% !important;
+        font-size: 13px !important;
+        padding: 0.6rem 0.9rem !important;
+    }}
+    .chat-ai {{
+        margin: 0.4rem 8% 0.4rem 0 !important;
+        font-size: 13px !important;
+        padding: 0.6rem 0.9rem !important;
+    }}
+
+    /* Metric value nhỏ hơn */
+    .metric-val {{ font-size: 22px !important; }}
+
+    /* Card padding nhỏ hơn */
+    .insako-card {{ padding: 0.9rem 1rem !important; }}
+
+    /* Input và button dễ chạm hơn */
+    input, textarea, select {{
+        font-size: 16px !important;
+    }}
+
+    /* Sidebar logo nhỏ hơn trên mobile */
+    .sidebar-logo-wrap img {{ width: 100px !important; }}
+}}
+
+/* Login mobile */
+@media (max-width: 600px) {{
+    .login-wrap {{
+        margin: 20px 12px 0 !important;
+        padding: 1.5rem 1.2rem !important;
+        border-radius: 16px !important;
+    }}
+    .login-wrap img {{ height: 52px !important; }}
+    .login-title {{ font-size: 17px !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -469,9 +513,8 @@ if page == "💬 Tra cứu AI":
     st.markdown("## 💬 Tra cứu nghiệp vụ Kế toán – Thuế")
     st.caption("Hỏi bất kỳ nghiệp vụ nào. AI trả lời theo cấu trúc: hồ sơ, rủi ro, hạch toán, checklist.")
 
-    # Câu hỏi gợi ý nhanh
+    # Câu hỏi gợi ý nhanh – 2 cột trên mobile, 3 cột trên desktop
     st.markdown("**Gợi ý nhanh:**")
-    cols = st.columns(3)
     quick_qs = [
         "Chi phí tiếp khách ký hợp đồng bán máy phun bi",
         "Thuê kỹ thuật viên tự do lắp máy, trả tiền mặt 5 triệu",
@@ -480,6 +523,7 @@ if page == "💬 Tra cứu AI":
         "Chi phí công tác phí kỹ thuật viên đi Đà Nẵng 3 ngày",
         "Hóa đơn mua phụ tùng ghi sai địa chỉ xử lý thế nào?",
     ]
+    cols = st.columns(2)
     _uname = st.session_state.get("username", "")
     _sid = st.session_state.session_id
 
