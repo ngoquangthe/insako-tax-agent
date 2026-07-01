@@ -29,6 +29,11 @@ sys.path.insert(0, str(ROOT))
 import os
 os.chdir(ROOT)
 
+from src.services.auth_service import (
+    hash_password as _auth_hash, verify_password as _auth_verify,
+    get_supabase_password_hash, save_new_password,
+    create_otp, verify_otp, send_otp_email, get_user_email,
+)
 from src.agents.tax_agent import TaxAgent
 from src.services.tax_case_service import TaxCaseService
 from src.tools.report_tool import ReportTool
@@ -74,10 +79,87 @@ def _load_users() -> dict:
 
 
 def _check_login(username: str, password: str, users: dict) -> bool:
-    user = users.get(username.strip().lower())
+    uname = username.strip().lower()
+    user = users.get(uname)
     if not user:
         return False
+    # Ưu tiên mật khẩu đã reset lưu trên Supabase
+    sb_hash = get_supabase_password_hash(uname)
+    if sb_hash:
+        return _auth_verify(password, sb_hash)
     return hmac.compare_digest(user["password_hash"], _hash_password(password))
+
+
+def _forgot_password_ui():
+    """Luồng quên mật khẩu: nhập username → gửi OTP email → đặt mật khẩu mới."""
+    step = st.session_state.get("fp_step", 1)
+
+    if step == 1:
+        st.markdown("**Bước 1 – Nhập tên đăng nhập**")
+        fp_user = st.text_input("Username", key="fp_username", placeholder="Nhập username của bạn...")
+        if st.button("📧 Gửi mã OTP", key="fp_send"):
+            if not fp_user.strip():
+                st.error("Vui lòng nhập username.")
+                return
+            uname = fp_user.strip().lower()
+            users = _load_users()
+            if uname not in users:
+                st.error("❌ Không tìm thấy tài khoản này.")
+                return
+            email = get_user_email(uname)
+            if not email:
+                st.warning("⚠️ Tài khoản chưa có email. Liên hệ admin để đặt lại.")
+                return
+            otp = create_otp(uname)
+            if not otp:
+                st.error("Lỗi kết nối Supabase. Thử lại sau.")
+                return
+            ok = send_otp_email(email, uname, otp)
+            if ok:
+                # Ẩn bớt email để bảo mật: abc***@gmail.com
+                parts = email.split("@")
+                masked = parts[0][:3] + "***@" + parts[1] if len(parts) == 2 else email
+                st.session_state["fp_step"] = 2
+                st.session_state["fp_user"] = uname
+                st.session_state["fp_masked_email"] = masked
+                st.rerun()
+            else:
+                st.error("❌ Gửi email thất bại. Kiểm tra cấu hình SMTP trong Secrets.")
+
+    elif step == 2:
+        masked = st.session_state.get("fp_masked_email", "")
+        uname = st.session_state.get("fp_user", "")
+        st.success(f"✅ Đã gửi mã OTP đến **{masked}**. Kiểm tra hộp thư (kể cả Spam).")
+        st.markdown("**Bước 2 – Nhập mã OTP và mật khẩu mới**")
+        otp_input = st.text_input("Mã OTP (6 số)", key="fp_otp", placeholder="Nhập mã từ email...")
+        new_pw1 = st.text_input("Mật khẩu mới", type="password", key="fp_pw1")
+        new_pw2 = st.text_input("Xác nhận mật khẩu", type="password", key="fp_pw2")
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("✅ Xác nhận đổi mật khẩu", key="fp_confirm", type="primary"):
+                if not otp_input.strip():
+                    st.error("Vui lòng nhập mã OTP.")
+                elif not new_pw1 or len(new_pw1) < 6:
+                    st.error("Mật khẩu phải có ít nhất 6 ký tự.")
+                elif new_pw1 != new_pw2:
+                    st.error("❌ Mật khẩu xác nhận không khớp.")
+                elif not verify_otp(uname, otp_input.strip()):
+                    st.error("❌ Mã OTP sai hoặc đã hết hạn. Thử gửi lại.")
+                else:
+                    ok = save_new_password(uname, _hash_password(new_pw1))
+                    if ok:
+                        st.success("✅ Đặt lại mật khẩu thành công! Đăng nhập lại.")
+                        for k in ["fp_step", "fp_user", "fp_masked_email"]:
+                            st.session_state.pop(k, None)
+                        st.rerun()
+                    else:
+                        st.error("Lỗi lưu mật khẩu. Thử lại.")
+        with col_b:
+            if st.button("↩️ Gửi lại OTP", key="fp_resend"):
+                for k in ["fp_step", "fp_user", "fp_masked_email"]:
+                    st.session_state.pop(k, None)
+                st.rerun()
 
 
 def _logo_base64() -> str:
@@ -149,6 +231,11 @@ def _show_login():
                     st.error("❌ Sai tên đăng nhập hoặc mật khẩu")
 
         st.caption("Liên hệ quản trị viên nếu quên mật khẩu.")
+
+        st.markdown("---")
+        with st.expander("🔑 Quên mật khẩu?"):
+            _forgot_password_ui()
+
         st.markdown('</div>', unsafe_allow_html=True)
 
 
