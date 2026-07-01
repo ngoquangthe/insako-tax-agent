@@ -248,6 +248,8 @@ with st.sidebar:
     st.markdown(f"**Trạng thái:** {status}")
     st.markdown("---")
 
+    is_admin = st.session_state.get("username", "") == "admin"
+
     pages = [
         "💬 Tra cứu AI",
         "✅ Kiểm tra hồ sơ",
@@ -256,6 +258,11 @@ with st.sidebar:
         "📜 Nhật ký lỗi",
         "📊 Báo cáo rủi ro",
     ]
+    if is_admin:
+        pages.append("⚙️ Quản lý tài khoản")
+
+    if st.session_state.active_page not in pages:
+        st.session_state.active_page = pages[0]
     page = st.radio("Chọn chức năng", pages, index=pages.index(st.session_state.active_page))
     st.session_state.active_page = page
 
@@ -696,3 +703,115 @@ elif page == "📊 Báo cáo rủi ro":
         with st.spinner("AI đang phân tích..."):
             resp = agent.query(context)
         st.markdown(resp)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 7: QUẢN LÝ TÀI KHOẢN (chỉ admin)
+# ══════════════════════════════════════════════════════════════════════════════
+elif page == "⚙️ Quản lý tài khoản":
+    if not st.session_state.get("username", "") == "admin":
+        st.error("⛔ Chỉ Admin mới có quyền truy cập trang này.")
+        st.stop()
+
+    st.markdown("## ⚙️ Quản lý tài khoản người dùng")
+    st.caption("Thêm, sửa mật khẩu, xóa tài khoản. Thay đổi sẽ tạo ra đoạn TOML để cập nhật lên Streamlit Secrets.")
+
+    users = _load_users()
+
+    # ── Danh sách tài khoản ───────────────────────────────────────────────────
+    st.markdown("### 👥 Danh sách tài khoản hiện tại")
+    for uname, info in users.items():
+        role_badge = {"admin": "🔴 Admin", "accountant": "🟡 Kế toán", "viewer": "🔵 Xem"}.get(info.get("role",""), "⚪ Khác")
+        col1, col2, col3 = st.columns([2, 2, 1])
+        with col1:
+            st.markdown(f"**{uname}** — {info.get('name','')}")
+        with col2:
+            st.markdown(role_badge)
+        with col3:
+            st.markdown(f"`{info.get('role','')}`")
+
+    st.markdown("---")
+
+    # ── Tab thao tác ──────────────────────────────────────────────────────────
+    tab1, tab2, tab3 = st.tabs(["🔑 Đổi mật khẩu", "➕ Thêm tài khoản", "🗑️ Xóa tài khoản"])
+
+    with tab1:
+        st.markdown("#### Đổi mật khẩu người dùng")
+        u_change = st.selectbox("Chọn tài khoản", list(users.keys()), key="pw_user")
+        new_pw = st.text_input("Mật khẩu mới", type="password", key="pw_new")
+        confirm_pw = st.text_input("Xác nhận mật khẩu", type="password", key="pw_confirm")
+
+        if st.button("🔑 Tạo mật khẩu mới", key="btn_pw"):
+            if not new_pw:
+                st.error("Vui lòng nhập mật khẩu mới.")
+            elif new_pw != confirm_pw:
+                st.error("❌ Mật khẩu xác nhận không khớp.")
+            elif len(new_pw) < 6:
+                st.error("❌ Mật khẩu phải có ít nhất 6 ký tự.")
+            else:
+                new_hash = _hash_password(new_pw)
+                updated = dict(users)
+                updated[u_change]["password_hash"] = new_hash
+                st.success(f"✅ Đã tạo hash mới cho **{u_change}**")
+                st.markdown("**Sao chép đoạn TOML dưới đây → dán vào Streamlit Secrets:**")
+                toml_lines = [f'ANTHROPIC_API_KEY = "{st.secrets.get("ANTHROPIC_API_KEY","YOUR_KEY_HERE") if hasattr(st,"secrets") else "YOUR_KEY_HERE"}"\n']
+                for un, info in updated.items():
+                    toml_lines.append(f'\n[users.{un}]')
+                    toml_lines.append(f'name = "{info["name"]}"')
+                    toml_lines.append(f'password_hash = "{info["password_hash"]}"')
+                    toml_lines.append(f'role = "{info["role"]}"')
+                st.code("\n".join(toml_lines), language="toml")
+                st.info("📋 Vào **share.streamlit.io** → App → ⋮ → Settings → Secrets → paste đoạn trên → Save")
+
+    with tab2:
+        st.markdown("#### Thêm tài khoản mới")
+        new_uname = st.text_input("Username (không dấu, không cách)", key="add_uname").strip().lower()
+        new_name = st.text_input("Tên hiển thị", key="add_name")
+        new_role = st.selectbox("Vai trò", ["accountant", "viewer", "admin"], key="add_role")
+        add_pw = st.text_input("Mật khẩu", type="password", key="add_pw")
+
+        if st.button("➕ Thêm tài khoản", key="btn_add"):
+            if not new_uname or not new_name or not add_pw:
+                st.error("Vui lòng điền đầy đủ thông tin.")
+            elif new_uname in users:
+                st.error(f"❌ Username **{new_uname}** đã tồn tại.")
+            elif len(add_pw) < 6:
+                st.error("❌ Mật khẩu phải có ít nhất 6 ký tự.")
+            else:
+                updated = dict(users)
+                updated[new_uname] = {
+                    "name": new_name,
+                    "password_hash": _hash_password(add_pw),
+                    "role": new_role,
+                }
+                st.success(f"✅ Đã thêm tài khoản **{new_uname}**")
+                st.markdown("**Sao chép đoạn TOML dưới đây → dán vào Streamlit Secrets:**")
+                toml_lines = [f'ANTHROPIC_API_KEY = "{st.secrets.get("ANTHROPIC_API_KEY","YOUR_KEY_HERE") if hasattr(st,"secrets") else "YOUR_KEY_HERE"}"\n']
+                for un, info in updated.items():
+                    toml_lines.append(f'\n[users.{un}]')
+                    toml_lines.append(f'name = "{info["name"]}"')
+                    toml_lines.append(f'password_hash = "{info["password_hash"]}"')
+                    toml_lines.append(f'role = "{info["role"]}"')
+                st.code("\n".join(toml_lines), language="toml")
+                st.info("📋 Vào **share.streamlit.io** → App → ⋮ → Settings → Secrets → paste đoạn trên → Save")
+
+    with tab3:
+        st.markdown("#### Xóa tài khoản")
+        deletable = [u for u in users.keys() if u != "admin"]
+        if not deletable:
+            st.info("Không có tài khoản nào để xóa (không thể xóa admin).")
+        else:
+            u_del = st.selectbox("Chọn tài khoản cần xóa", deletable, key="del_user")
+            st.warning(f"⚠️ Sẽ xóa tài khoản **{u_del}** ({users[u_del].get('name','')}). Không thể hoàn tác!")
+            if st.button("🗑️ Xác nhận xóa", key="btn_del", type="primary"):
+                updated = {k: v for k, v in users.items() if k != u_del}
+                st.success(f"✅ Đã xóa tài khoản **{u_del}**")
+                st.markdown("**Sao chép đoạn TOML dưới đây → dán vào Streamlit Secrets:**")
+                toml_lines = [f'ANTHROPIC_API_KEY = "{st.secrets.get("ANTHROPIC_API_KEY","YOUR_KEY_HERE") if hasattr(st,"secrets") else "YOUR_KEY_HERE"}"\n']
+                for un, info in updated.items():
+                    toml_lines.append(f'\n[users.{un}]')
+                    toml_lines.append(f'name = "{info["name"]}"')
+                    toml_lines.append(f'password_hash = "{info["password_hash"]}"')
+                    toml_lines.append(f'role = "{info["role"]}"')
+                st.code("\n".join(toml_lines), language="toml")
+                st.info("📋 Vào **share.streamlit.io** → App → ⋮ → Settings → Secrets → paste đoạn trên → Save")
