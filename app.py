@@ -8,6 +8,7 @@ import hmac
 import json
 import os
 import sys
+import uuid
 from pathlib import Path
 from datetime import datetime
 
@@ -32,6 +33,7 @@ from src.agents.tax_agent import TaxAgent
 from src.services.tax_case_service import TaxCaseService
 from src.tools.report_tool import ReportTool
 from src.utils.helpers import format_currency, today_str
+from src.services import supabase_service as supa
 
 # ── Cấu hình trang ──────────────────────────────────────────────────────────
 st.set_page_config(
@@ -244,6 +246,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "active_page" not in st.session_state:
     st.session_state.active_page = "💬 Tra cứu AI"
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -266,6 +270,7 @@ with st.sidebar:
         "➕ Ghi nhận lỗi",
         "📜 Nhật ký lỗi",
         "📊 Báo cáo rủi ro",
+        "🕐 Lịch sử chat",
     ]
     if is_admin:
         pages.append("⚙️ Quản lý tài khoản")
@@ -311,13 +316,18 @@ if page == "💬 Tra cứu AI":
         "Chi phí công tác phí kỹ thuật viên đi Đà Nẵng 3 ngày",
         "Hóa đơn mua phụ tùng ghi sai địa chỉ xử lý thế nào?",
     ]
+    _uname = st.session_state.get("username", "")
+    _sid = st.session_state.session_id
+
     for i, q in enumerate(quick_qs):
         with cols[i % 3]:
             if st.button(q, key=f"quick_{i}", use_container_width=True):
                 st.session_state.messages.append({"role": "user", "content": q})
+                supa.save_message(_uname, _sid, "user", q)
                 with st.spinner("AI đang phân tích..."):
                     resp = agent.query(q, mode="general")
                 st.session_state.messages.append({"role": "assistant", "content": resp})
+                supa.save_message(_uname, _sid, "assistant", resp)
                 st.rerun()
 
     st.markdown("---")
@@ -334,6 +344,7 @@ if page == "💬 Tra cứu AI":
     # Input người dùng
     if prompt := st.chat_input("Nhập câu hỏi kế toán – thuế (VD: Chi phí vận chuyển hạt bi thép cần hồ sơ gì?)"):
         st.session_state.messages.append({"role": "user", "content": prompt})
+        supa.save_message(_uname, _sid, "user", prompt)
         with st.chat_message("user", avatar="👤"):
             st.markdown(prompt)
 
@@ -343,6 +354,7 @@ if page == "💬 Tra cứu AI":
             st.markdown(response)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
+        supa.save_message(_uname, _sid, "assistant", response)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -715,9 +727,74 @@ elif page == "📊 Báo cáo rủi ro":
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# PAGE 7: QUẢN LÝ TÀI KHOẢN (chỉ admin)
+# PAGE 7: LỊCH SỬ CHAT
 # ══════════════════════════════════════════════════════════════════════════════
-elif page == "⚙️ Quản lý tài khoản":
+elif page == "🕐 Lịch sử chat":
+    st.markdown("## 🕐 Lịch sử hội thoại")
+    st.caption("Xem lại các cuộc trò chuyện đã lưu trên Supabase.")
+
+    cur_user = st.session_state.get("username", "")
+    cur_is_admin = cur_user == "admin"
+
+    # Admin xem tất cả hoặc lọc theo user; user thường chỉ thấy của mình
+    filter_user = None if cur_is_admin else cur_user
+    if cur_is_admin:
+        col_f1, col_f2 = st.columns([2, 3])
+        with col_f1:
+            filter_input = st.text_input("Lọc theo username (để trống = tất cả)", placeholder="VD: ketoan")
+            filter_user = filter_input.strip().lower() if filter_input.strip() else None
+
+    sessions = supa.get_sessions(username=filter_user)
+
+    if not sessions:
+        sb_ok = supa._get_client() is not None
+        if not sb_ok:
+            st.warning("⚠️ Chưa kết nối Supabase. Kiểm tra SUPABASE_URL và SUPABASE_KEY trong Streamlit Secrets.")
+        else:
+            st.info("Chưa có lịch sử chat nào được lưu.")
+    else:
+        st.markdown(f"**{len(sessions)} cuộc hội thoại** được tìm thấy.")
+        st.markdown("---")
+
+        for sess in sessions:
+            sid = sess["session_id"]
+            started = sess["started_at"][:16].replace("T", " ") if sess.get("started_at") else "—"
+            uname_label = f" | 👤 {sess['username']}" if cur_is_admin else ""
+            label = f"🗓️ {started}{uname_label} | 💬 {sess['count']} tin nhắn"
+
+            with st.expander(label):
+                msgs = supa.get_session_messages(sid)
+                if not msgs:
+                    st.caption("Không tải được tin nhắn.")
+                    continue
+
+                # Hiển thị từng tin nhắn
+                for m in msgs:
+                    if m["role"] == "user":
+                        with st.chat_message("user", avatar="👤"):
+                            st.markdown(m["content"])
+                    else:
+                        with st.chat_message("assistant", avatar="📒"):
+                            st.markdown(m["content"])
+
+                # Nút export
+                export_text = "\n\n".join(
+                    f"[{m['role'].upper()} – {m['created_at'][:16]}]\n{m['content']}"
+                    for m in msgs
+                )
+                st.download_button(
+                    label="⬇️ Tải về .txt",
+                    data=export_text.encode("utf-8"),
+                    file_name=f"chat_{started.replace(' ','_').replace(':','-')}.txt",
+                    mime="text/plain",
+                    key=f"dl_{sid}",
+                )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PAGE 8: QUẢN LÝ TÀI KHOẢN (chỉ admin)
+# ══════════════════════════════════════════════════════════════════════════════
+elif page == "⚙️ Quản lý tài khoản":  # PAGE 8
     if not st.session_state.get("username", "") == "admin":
         st.error("⛔ Chỉ Admin mới có quyền truy cập trang này.")
         st.stop()
