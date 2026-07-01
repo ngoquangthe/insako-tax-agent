@@ -597,16 +597,55 @@ elif page == "📅 Kiểm tra định kỳ":
             st.error(f"❌ Mới hoàn thành {pct}% — cần xử lý gấp trước deadline.")
 
         st.markdown("---")
-        if st.button("🤖 Hỏi AI về mục chưa hoàn thành", key="ai_month"):
-            unchecked = [item for section, items in MONTHLY_CHECKS.items() for i, item in enumerate(items)
-                         if not st.session_state.get(f"month_{sel_year}_{sel_month}_{section}_{i}", False)]
-            if unchecked:
-                q = f"Tháng {sel_month}/{sel_year} còn {len(unchecked)} mục chưa hoàn thành:\n" + "\n".join(f"- {x}" for x in unchecked) + "\n\nHướng dẫn cách xử lý nhanh nhất."
-                with st.spinner("AI đang phân tích..."):
-                    resp = agent.query(q)
-                st.markdown(resp)
-            else:
-                st.success("Tất cả đã hoàn thành!")
+        st.markdown("**📎 Tải file lên để AI kiểm tra (tờ khai, bảng lương, hóa đơn...)**")
+        month_files = st.file_uploader(
+            "Chọn file",
+            type=["jpg", "jpeg", "png", "webp", "pdf", "xlsx", "xls", "csv"],
+            accept_multiple_files=True,
+            key=f"upload_month_{sel_year}_{sel_month}",
+            label_visibility="collapsed",
+        )
+        month_note = st.text_input(
+            "Câu hỏi cụ thể (để trống = AI tự kiểm tra theo checklist)",
+            placeholder="VD: Kiểm tra hóa đơn này có hợp lệ không?",
+            key=f"note_month_{sel_year}_{sel_month}",
+        )
+
+        col_m_btn1, col_m_btn2 = st.columns(2)
+        with col_m_btn1:
+            if st.button("📎 Gửi file để AI kiểm tra", key="ai_month_file",
+                         disabled=not month_files):
+                unchecked = [item for section, items in MONTHLY_CHECKS.items()
+                             for i, item in enumerate(items)
+                             if not st.session_state.get(f"month_{sel_year}_{sel_month}_{section}_{i}", False)]
+                checklist_context = (
+                    f"Tháng {sel_month}/{sel_year} – các mục checklist CHƯA hoàn thành:\n"
+                    + "\n".join(f"- {x}" for x in unchecked)
+                    if unchecked else f"Tháng {sel_month}/{sel_year} – tất cả mục đã tick."
+                )
+                question = month_note or f"Kiểm tra file theo checklist báo cáo thuế tháng {sel_month}/{sel_year} của INSAKO. {checklist_context}"
+
+                for uf in month_files:
+                    file_bytes = uf.read()
+                    file_blocks = build_message_with_file(question, file_bytes, uf.name, uf.type or "")
+                    with st.spinner(f"AI đang phân tích {uf.name}..."):
+                        resp = agent.query(question, file_content=file_blocks)
+                    st.markdown(f"**📄 {uf.name}**")
+                    st.markdown(resp)
+                    st.markdown("---")
+
+        with col_m_btn2:
+            if st.button("🤖 Hỏi AI về mục chưa hoàn thành", key="ai_month"):
+                unchecked = [item for section, items in MONTHLY_CHECKS.items()
+                             for i, item in enumerate(items)
+                             if not st.session_state.get(f"month_{sel_year}_{sel_month}_{section}_{i}", False)]
+                if unchecked:
+                    q = f"Tháng {sel_month}/{sel_year} còn {len(unchecked)} mục chưa hoàn thành:\n" + "\n".join(f"- {x}" for x in unchecked) + "\n\nHướng dẫn cách xử lý nhanh nhất."
+                    with st.spinner("AI đang phân tích..."):
+                        resp = agent.query(q)
+                    st.markdown(resp)
+                else:
+                    st.success("Tất cả đã hoàn thành!")
 
     # ── TAB 2: NĂM ────────────────────────────────────────────────────────────
     with tab_year:
@@ -683,7 +722,43 @@ elif page == "📅 Kiểm tra định kỳ":
         else:
             st.error(f"❌ Mới hoàn thành {pct_a}% — cần ưu tiên xử lý gấp.")
 
-        # Export checklist
+        # Upload file + AI kiểm tra
+        st.markdown("---")
+        st.markdown("**📎 Tải file lên để AI kiểm tra (BCTC, tờ khai quyết toán, bảng cân đối...)**")
+        annual_files = st.file_uploader(
+            "Chọn file",
+            type=["jpg", "jpeg", "png", "webp", "pdf", "xlsx", "xls", "csv"],
+            accept_multiple_files=True,
+            key=f"upload_annual_{sel_year_annual}",
+            label_visibility="collapsed",
+        )
+        annual_note = st.text_input(
+            "Câu hỏi cụ thể (để trống = AI tự kiểm tra theo checklist năm)",
+            placeholder="VD: Kiểm tra bảng cân đối kế toán năm có khớp không?",
+            key=f"note_annual_{sel_year_annual}",
+        )
+
+        if st.button("📎 Gửi file để AI kiểm tra", key="ai_annual_file",
+                     disabled=not annual_files):
+            unchecked_a = [item for section, items in ANNUAL_CHECKS.items()
+                           for i, item in enumerate(items)
+                           if not st.session_state.get(f"annual_{sel_year_annual}_{section}_{i}", False)]
+            checklist_ctx = (
+                f"Năm {sel_year_annual} – các mục CHƯA hoàn thành:\n"
+                + "\n".join(f"- {x}" for x in unchecked_a[:15])
+                if unchecked_a else f"Năm {sel_year_annual} – tất cả mục đã tick."
+            )
+            question = annual_note or f"Kiểm tra file theo checklist báo cáo tài chính năm {sel_year_annual} của INSAKO. {checklist_ctx}"
+
+            for uf in annual_files:
+                file_bytes = uf.read()
+                file_blocks = build_message_with_file(question, file_bytes, uf.name, uf.type or "")
+                with st.spinner(f"AI đang phân tích {uf.name}..."):
+                    resp = agent.query(question, file_content=file_blocks)
+                st.markdown(f"**📄 {uf.name}**")
+                st.markdown(resp)
+                st.markdown("---")
+
         st.markdown("---")
         col_e1, col_e2 = st.columns(2)
         with col_e1:
