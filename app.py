@@ -80,31 +80,63 @@ def _check_login(username: str, password: str, users: dict) -> bool:
     return hmac.compare_digest(user["password_hash"], _hash_password(password))
 
 
+def _logo_base64() -> str:
+    """Đọc logo từ assets/logo.png, trả về chuỗi base64."""
+    import base64
+    logo_path = ROOT / "assets" / "logo.png"
+    if logo_path.exists():
+        return base64.b64encode(logo_path.read_bytes()).decode()
+    return ""
+
+
 def _show_login():
-    st.markdown("""
+    logo_b64 = _logo_base64()
+    logo_html = (
+        f'<img src="data:image/png;base64,{logo_b64}" style="height:72px; margin-bottom:1rem;">'
+        if logo_b64 else
+        '<div style="font-size:48px; margin-bottom:0.5rem;">🏭</div>'
+    )
+    st.markdown(f"""
     <style>
-    [data-testid="stAppViewContainer"] { background: #1a1a2e; }
-    .login-box {
-        max-width: 420px; margin: 80px auto 0;
-        background: white; border-radius: 16px;
-        padding: 2.5rem 2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    }
-    .login-logo { text-align:center; font-size:48px; margin-bottom:0.5rem; }
-    .login-title { text-align:center; font-size:22px; font-weight:700; color:#1a1a2e; margin-bottom:0.25rem; }
-    .login-sub { text-align:center; font-size:13px; color:#666; margin-bottom:1.5rem; }
+    [data-testid="stAppViewContainer"] {{
+        background: linear-gradient(135deg, #1B3A7A 0%, #0d2150 100%);
+    }}
+    .login-wrap {{
+        max-width: 440px; margin: 60px auto 0;
+        background: white; border-radius: 20px;
+        padding: 2.5rem 2.2rem;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    }}
+    .login-logo {{ text-align:center; margin-bottom:0.25rem; }}
+    .login-title {{
+        text-align:center; font-size:20px; font-weight:700;
+        color:#1B3A7A; margin-bottom:0.2rem;
+    }}
+    .login-sub {{ text-align:center; font-size:13px; color:#888; margin-bottom:1.6rem; }}
+    .login-divider {{
+        height:3px; border-radius:2px; margin-bottom:1.6rem;
+        background: linear-gradient(90deg, #C41230, #1B3A7A);
+    }}
+    div[data-testid="stForm"] button[kind="primaryFormSubmit"] {{
+        background: #C41230 !important;
+        border: none !important;
+        font-weight: 600 !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 2.2, 1])
     with col2:
-        st.markdown('<div class="login-logo">📒</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="login-wrap">', unsafe_allow_html=True)
+        st.markdown(f'<div class="login-logo">{logo_html}</div>', unsafe_allow_html=True)
         st.markdown('<div class="login-title">INSAKO Tax Agent</div>', unsafe_allow_html=True)
         st.markdown('<div class="login-sub">Sổ tay Kế toán – Thuế – Tài chính nội bộ</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-divider"></div>', unsafe_allow_html=True)
 
         with st.form("login_form"):
             username = st.text_input("Tên đăng nhập", placeholder="Nhập username...")
             password = st.text_input("Mật khẩu", type="password", placeholder="Nhập mật khẩu...")
-            submitted = st.form_submit_button("🔐 Đăng nhập", use_container_width=True)
+            submitted = st.form_submit_button("🔐 Đăng nhập", use_container_width=True, type="primary")
 
             if submitted:
                 users = _load_users()
@@ -117,6 +149,7 @@ def _show_login():
                     st.error("❌ Sai tên đăng nhập hoặc mật khẩu")
 
         st.caption("Liên hệ quản trị viên nếu quên mật khẩu.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # Kiểm tra xác thực
@@ -124,88 +157,109 @@ if not st.session_state.get("authenticated", False):
     _show_login()
     st.stop()
 
-# ── CSS tùy chỉnh ────────────────────────────────────────────────────────────
-st.markdown("""
+# ── CSS tùy chỉnh – màu nhận diện INSAKO ─────────────────────────────────────
+_logo_b64_main = _logo_base64()
+_logo_sidebar_html = (
+    f'<img src="data:image/png;base64,{_logo_b64_main}" style="width:140px; margin:0 auto 0.5rem; display:block;">'
+    if _logo_b64_main else
+    '<div style="text-align:center;font-size:28px;margin-bottom:4px;">🏭</div>'
+)
+
+st.markdown(f"""
 <style>
-/* Font và màu nền */
-[data-testid="stAppViewContainer"] { background: #f8f9fa; }
-[data-testid="stSidebar"] { background: #1a1a2e; }
-[data-testid="stSidebar"] * { color: #e0e0e0 !important; }
-[data-testid="stSidebar"] .stRadio label { color: #e0e0e0 !important; font-size: 15px; }
-[data-testid="stSidebar"] hr { border-color: #333 !important; }
+/* ── Màu chủ đạo INSAKO: đỏ #C41230, xanh #1B3A7A ── */
+[data-testid="stAppViewContainer"] {{ background: #f4f6fb; }}
+
+/* Sidebar */
+[data-testid="stSidebar"] {{ background: #1B3A7A; }}
+[data-testid="stSidebar"] * {{ color: #e8edf8 !important; }}
+[data-testid="stSidebar"] .stRadio label {{ font-size: 14px; }}
+[data-testid="stSidebar"] hr {{ border-color: #2d4f9e !important; }}
+[data-testid="stSidebar"] .stButton button {{
+    background: #C41230 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}}
+
+/* Dải màu trên đầu sidebar */
+.sidebar-logo-wrap {{
+    background: linear-gradient(180deg, #152f6b 0%, #1B3A7A 100%);
+    padding: 1rem 0.5rem 0.75rem;
+    margin: -1rem -1rem 0.5rem;
+    border-bottom: 3px solid #C41230;
+    text-align: center;
+}}
+.sidebar-app-name {{
+    font-size: 13px; font-weight: 700; color: #ffffff !important;
+    letter-spacing: 0.5px; margin-top: 4px;
+}}
+.sidebar-app-sub {{
+    font-size: 11px; color: #a0b4d6 !important; margin-top: 1px;
+}}
+
+/* Nút primary toàn app */
+div[data-testid="stButton"] > button[kind="primary"],
+div.stButton > button[kind="primary"] {{
+    background: #C41230 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}}
+div[data-testid="stButton"] > button[kind="primary"]:hover {{
+    background: #a50e27 !important;
+}}
 
 /* Card */
-.insako-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.2rem 1.5rem;
-    border: 1px solid #e8eaf0;
-    margin-bottom: 1rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-}
-.insako-card-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: #1a1a2e;
-    margin-bottom: 0.5rem;
-}
+.insako-card {{
+    background: white; border-radius: 12px;
+    padding: 1.2rem 1.5rem; border: 1px solid #dde3f0;
+    margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(27,58,122,0.07);
+}}
+.insako-card-title {{
+    font-size: 15px; font-weight: 600; color: #1B3A7A; margin-bottom: 0.5rem;
+}}
+
+/* Header accent bar */
+h1, h2 {{ color: #1B3A7A !important; }}
+h2::after {{
+    content: ""; display: block; height: 3px; width: 48px;
+    background: #C41230; border-radius: 2px; margin-top: 6px;
+}}
 
 /* Chat bubble */
-.chat-user {
-    background: #1a1a2e;
-    color: white;
+.chat-user {{
+    background: #1B3A7A; color: white;
     border-radius: 16px 16px 4px 16px;
-    padding: 0.8rem 1.2rem;
-    margin: 0.5rem 0 0.5rem 20%;
-    font-size: 14px;
-    line-height: 1.6;
-}
-.chat-ai {
-    background: white;
-    color: #1a1a2e;
+    padding: 0.8rem 1.2rem; margin: 0.5rem 0 0.5rem 20%;
+    font-size: 14px; line-height: 1.6;
+}}
+.chat-ai {{
+    background: white; color: #1B3A7A;
     border-radius: 16px 16px 16px 4px;
-    padding: 0.8rem 1.2rem;
-    margin: 0.5rem 20% 0.5rem 0;
-    font-size: 14px;
-    line-height: 1.6;
-    border: 1px solid #e8eaf0;
-}
+    padding: 0.8rem 1.2rem; margin: 0.5rem 20% 0.5rem 0;
+    font-size: 14px; line-height: 1.6;
+    border: 1px solid #dde3f0;
+}}
 
 /* Metric card */
-.metric-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 1rem;
-}
-.metric-card {
-    flex: 1;
-    background: white;
-    border-radius: 10px;
-    padding: 1rem;
-    border: 1px solid #e8eaf0;
-    text-align: center;
-}
-.metric-val { font-size: 28px; font-weight: 700; color: #1a1a2e; }
-.metric-lbl { font-size: 12px; color: #666; margin-top: 2px; }
+.metric-val {{ font-size: 28px; font-weight: 700; color: #1B3A7A; }}
+.metric-lbl {{ font-size: 12px; color: #666; margin-top: 2px; }}
 
 /* Badge */
-.badge-red { background:#fee2e2; color:#991b1b; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }
-.badge-yellow { background:#fef9c3; color:#854d0e; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }
-.badge-green { background:#dcfce7; color:#166534; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }
-.badge-blue { background:#dbeafe; color:#1e40af; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }
+.badge-red    {{ background:#fde8ec; color:#C41230; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
+.badge-yellow {{ background:#fef9c3; color:#854d0e; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
+.badge-green  {{ background:#dcfce7; color:#166534; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
+.badge-blue   {{ background:#dbeafe; color:#1B3A7A; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
 
-/* Quick chip */
-.chip {
-    display: inline-block;
-    background: #f1f5f9;
-    color: #334155;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 13px;
-    margin: 3px;
-    cursor: pointer;
-    border: 1px solid #e2e8f0;
-}
+/* Chip */
+.chip {{
+    display:inline-block; background:#eef1fb; color:#1B3A7A;
+    border-radius:20px; padding:4px 12px; font-size:13px;
+    margin:3px; border:1px solid #c5cfe8;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -253,9 +307,13 @@ if "session_id" not in st.session_state:
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 📒 INSAKO Tax Agent")
-    st.markdown("*Kế toán – Thuế – Tài chính*")
-    st.markdown("---")
+    st.markdown(f"""
+    <div class="sidebar-logo-wrap">
+        {_logo_sidebar_html}
+        <div class="sidebar-app-name">INSAKO TAX AGENT</div>
+        <div class="sidebar-app-sub">Kế toán · Thuế · Tài chính</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     api_ok = agent._client is not None
     status = "🟢 Claude API" if api_ok else "🟡 Chế độ cục bộ"
