@@ -271,23 +271,54 @@ _logo_sidebar_html = (
 
 st.markdown(f"""
 <style>
-/* ── Màu chủ đạo INSAKO: đỏ #C41230, xanh #1B3A7A ── */
-[data-testid="stAppViewContainer"] {{ background: #f4f6fb; }}
+/* ══════════════════════════════════════════════
+   INSAKO DARK NAVY THEME  –  xanh nền / chữ trắng / accent đỏ
+   Primary  : #1B3A7A  (navy)
+   Dark bg  : #0d2150  (deep navy)
+   Accent   : #C41230  (red)
+   Text     : #e8edf8  (white-ish)
+══════════════════════════════════════════════ */
 
-/* Sidebar */
-[data-testid="stSidebar"] {{ background: #1B3A7A; }}
+/* ── Nền toàn app ── */
+[data-testid="stAppViewContainer"] {{
+    background: linear-gradient(160deg, #0d2150 0%, #1B3A7A 60%, #163266 100%);
+    min-height: 100vh;
+}}
+[data-testid="stMain"] {{ background: transparent; }}
+.main .block-container {{
+    background: transparent;
+    padding: 1.5rem 2rem 5rem;
+}}
+
+/* ── Chữ toàn cục ── */
+[data-testid="stMain"] *, .main * {{
+    color: #e8edf8;
+}}
+p, li, span, label, div {{ color: #e8edf8; }}
+h1 {{ color: #ffffff !important; font-size: 24px !important; font-weight: 700 !important; }}
+h2 {{ color: #ffffff !important; font-size: 20px !important; font-weight: 700 !important; }}
+h3 {{ color: #a0b4d6 !important; font-size: 16px !important; font-weight: 600 !important; }}
+h2::after {{
+    content: ""; display: block; height: 3px; width: 48px;
+    background: #C41230; border-radius: 2px; margin-top: 6px;
+}}
+
+/* ── Sidebar ── */
+[data-testid="stSidebar"] {{ background: #0a1a40 !important; border-right: 2px solid #C41230; }}
 [data-testid="stSidebar"] * {{ color: #e8edf8 !important; }}
-[data-testid="stSidebar"] .stRadio label {{ font-size: 14px; }}
 [data-testid="stSidebar"] hr {{ border-color: #2d4f9e !important; }}
+[data-testid="stSidebar"] .stRadio label {{
+    font-size: 14px; padding: 4px 0;
+}}
 [data-testid="stSidebar"] .stButton button {{
     background: #C41230 !important; color: white !important;
     border: none !important; border-radius: 8px !important;
     font-weight: 600 !important; min-height: 44px !important;
 }}
 
-/* Dải màu trên đầu sidebar */
+/* Sidebar logo strip */
 .sidebar-logo-wrap {{
-    background: linear-gradient(180deg, #152f6b 0%, #1B3A7A 100%);
+    background: linear-gradient(180deg, #071630 0%, #0d2150 100%);
     padding: 1rem 0.5rem 0.75rem;
     margin: -1rem -1rem 0.5rem;
     border-bottom: 3px solid #C41230; text-align: center;
@@ -295,69 +326,60 @@ st.markdown(f"""
 .sidebar-app-name {{ font-size: 13px; font-weight: 700; color: #ffffff !important; letter-spacing: 0.5px; margin-top: 4px; }}
 .sidebar-app-sub  {{ font-size: 11px; color: #a0b4d6 !important; margin-top: 1px; }}
 
-/* Nút primary toàn app */
+/* ── Nút ── */
+div[data-testid="stButton"] > button,
+div.stButton > button {{
+    background: rgba(255,255,255,0.08) !important;
+    color: #e8edf8 !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    border-radius: 8px !important;
+    min-height: 44px !important;
+    font-size: 14px !important;
+    transition: background 0.2s;
+}}
+div[data-testid="stButton"] > button:hover,
+div.stButton > button:hover {{
+    background: rgba(196,18,48,0.25) !important;
+    border-color: #C41230 !important;
+}}
 div[data-testid="stButton"] > button[kind="primary"],
 div.stButton > button[kind="primary"] {{
-    background: #C41230 !important; color: white !important;
-    border: none !important; border-radius: 8px !important;
+    background: #C41230 !important;
+    border-color: #C41230 !important;
+    color: white !important;
     font-weight: 600 !important;
 }}
 div[data-testid="stButton"] > button[kind="primary"]:hover {{ background: #a50e27 !important; }}
 
-/* Tất cả button: tap target tối thiểu 44px */
-div[data-testid="stButton"] > button,
-div.stButton > button {{
-    min-height: 44px !important;
+/* ── Form submit button ── */
+div[data-testid="stForm"] button[kind="primaryFormSubmit"] {{
+    background: #C41230 !important; color: white !important;
+    border: none !important; border-radius: 8px !important;
+    font-weight: 700 !important; min-height: 44px !important;
+}}
+
+/* ── Input / Textarea / Select ── */
+input, textarea, select,
+[data-testid="stTextInput"] input,
+[data-testid="stTextArea"] textarea {{
+    background: rgba(255,255,255,0.08) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
+    border-radius: 8px !important;
     font-size: 14px !important;
 }}
+input::placeholder, textarea::placeholder {{ color: #7a93bf !important; }}
+[data-testid="stTextInput"] label,
+[data-testid="stTextArea"] label,
+[data-testid="stSelectbox"] label {{ color: #a0b4d6 !important; font-size: 13px !important; }}
 
-/* Card */
-.insako-card {{
-    background: white; border-radius: 12px;
-    padding: 1.2rem 1.5rem; border: 1px solid #dde3f0;
-    margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(27,58,122,0.07);
+/* ── Chat message – nội dung AI ── */
+[data-testid="stChatMessage"] {{
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    border-radius: 12px !important;
+    margin-bottom: 0.75rem !important;
 }}
-.insako-card-title {{ font-size: 15px; font-weight: 600; color: #1B3A7A; margin-bottom: 0.5rem; }}
-
-/* Header accent bar */
-h1, h2 {{ color: #1B3A7A !important; }}
-h2::after {{
-    content: ""; display: block; height: 3px; width: 48px;
-    background: #C41230; border-radius: 2px; margin-top: 6px;
-}}
-
-/* Chat bubble – desktop */
-.chat-user {{
-    background: #1B3A7A; color: white;
-    border-radius: 16px 16px 4px 16px;
-    padding: 0.8rem 1.2rem; margin: 0.5rem 0 0.5rem 20%;
-    font-size: 14px; line-height: 1.6;
-}}
-.chat-ai {{
-    background: white; color: #1B3A7A;
-    border-radius: 16px 16px 16px 4px;
-    padding: 0.8rem 1.2rem; margin: 0.5rem 20% 0.5rem 0;
-    font-size: 14px; line-height: 1.6; border: 1px solid #dde3f0;
-}}
-
-/* Metric card */
-.metric-val {{ font-size: 28px; font-weight: 700; color: #1B3A7A; }}
-.metric-lbl {{ font-size: 12px; color: #666; margin-top: 2px; }}
-
-/* Badge */
-.badge-red    {{ background:#fde8ec; color:#C41230; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
-.badge-yellow {{ background:#fef9c3; color:#854d0e; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
-.badge-green  {{ background:#dcfce7; color:#166534; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
-.badge-blue   {{ background:#dbeafe; color:#1B3A7A; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
-
-/* Chip */
-.chip {{
-    display:inline-block; background:#eef1fb; color:#1B3A7A;
-    border-radius:20px; padding:4px 12px; font-size:13px;
-    margin:3px; border:1px solid #c5cfe8;
-}}
-
-/* Fix màu chữ trong st.chat_message (tránh bị trắng trên nền trắng) */
 [data-testid="stChatMessageContent"] p,
 [data-testid="stChatMessageContent"] li,
 [data-testid="stChatMessageContent"] span,
@@ -365,59 +387,109 @@ h2::after {{
 [data-testid="stChatMessageContent"] strong,
 [data-testid="stChatMessageContent"] em,
 [data-testid="stChatMessageContent"] td,
-[data-testid="stChatMessageContent"] th {{
-    color: #1a1a2e !important;
-}}
+[data-testid="stChatMessageContent"] th {{ color: #e8edf8 !important; }}
 [data-testid="stChatMessageContent"] h1,
 [data-testid="stChatMessageContent"] h2,
 [data-testid="stChatMessageContent"] h3,
-[data-testid="stChatMessageContent"] h4 {{
-    color: #1B3A7A !important;
+[data-testid="stChatMessageContent"] h4 {{ color: #ffffff !important; }}
+[data-testid="stChatMessageContent"] code {{
+    background: rgba(196,18,48,0.2) !important;
+    color: #ffb3be !important;
+    border-radius: 4px; padding: 1px 5px;
 }}
-/* Avatar user (bubble màu xanh) – chữ trắng */
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] p,
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] span {{
-    color: #1a1a2e !important;
+[data-testid="stChatMessageContent"] hr {{
+    border-color: rgba(255,255,255,0.15) !important;
+}}
+
+/* ── Chat input box ── */
+[data-testid="stChatInput"] textarea {{
+    background: rgba(255,255,255,0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(196,18,48,0.5) !important;
+    border-radius: 12px !important;
+}}
+[data-testid="stChatInput"] button {{
+    background: #C41230 !important;
+    border-radius: 8px !important;
+}}
+
+/* ── Card ── */
+.insako-card {{
+    background: rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}}
+.insako-card-title {{ font-size: 15px; font-weight: 600; color: #ffffff !important; margin-bottom: 0.5rem; }}
+
+/* ── Metric card ── */
+.metric-val {{ font-size: 28px; font-weight: 700; color: #ffffff; }}
+.metric-lbl {{ font-size: 12px; color: #a0b4d6; margin-top: 2px; }}
+
+/* ── Badge ── */
+.badge-red    {{ background:rgba(196,18,48,0.3); color:#ff8096; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
+.badge-yellow {{ background:rgba(234,179,8,0.2); color:#fde68a; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
+.badge-green  {{ background:rgba(22,163,74,0.2); color:#86efac; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
+.badge-blue   {{ background:rgba(96,165,250,0.2); color:#93c5fd; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
+
+/* ── Chip ── */
+.chip {{
+    display:inline-block; background:rgba(255,255,255,0.1); color:#e8edf8;
+    border-radius:20px; padding:4px 12px; font-size:13px;
+    margin:3px; border:1px solid rgba(255,255,255,0.2);
+}}
+
+/* ── Divider ── */
+hr {{ border-color: rgba(255,255,255,0.15) !important; }}
+
+/* ── Expander ── */
+[data-testid="stExpander"] {{
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-radius: 10px !important;
+}}
+[data-testid="stExpander"] summary {{ color: #e8edf8 !important; }}
+
+/* ── Selectbox / Radio ── */
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div {{
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    color: #e8edf8 !important;
+}}
+.stRadio > div {{ gap: 6px; }}
+.stRadio label {{ color: #e8edf8 !important; }}
+
+/* ── Checkbox ── */
+.stCheckbox label {{ color: #e8edf8 !important; }}
+
+/* ── Progress bar ── */
+[data-testid="stProgress"] > div > div {{ background: #C41230 !important; }}
+
+/* ── Spinner ── */
+[data-testid="stSpinner"] {{ color: #a0b4d6 !important; }}
+
+/* ── Alert / Info boxes ── */
+[data-testid="stAlert"] {{
+    background: rgba(255,255,255,0.07) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    color: #e8edf8 !important;
+    border-radius: 10px !important;
 }}
 
 /* ── MOBILE RESPONSIVE ── */
 @media (max-width: 768px) {{
-
-    /* Content area: bỏ padding thừa */
     .main .block-container {{
         padding: 0.75rem 0.75rem 5rem !important;
         max-width: 100% !important;
     }}
-
-    /* Tiêu đề nhỏ hơn */
     h1 {{ font-size: 20px !important; }}
     h2 {{ font-size: 17px !important; }}
     h3 {{ font-size: 15px !important; }}
-
-    /* Chat bubble full width trên mobile */
-    .chat-user {{
-        margin: 0.4rem 0 0.4rem 8% !important;
-        font-size: 13px !important;
-        padding: 0.6rem 0.9rem !important;
-    }}
-    .chat-ai {{
-        margin: 0.4rem 8% 0.4rem 0 !important;
-        font-size: 13px !important;
-        padding: 0.6rem 0.9rem !important;
-    }}
-
-    /* Metric value nhỏ hơn */
     .metric-val {{ font-size: 22px !important; }}
-
-    /* Card padding nhỏ hơn */
     .insako-card {{ padding: 0.9rem 1rem !important; }}
-
-    /* Input và button dễ chạm hơn */
-    input, textarea, select {{
-        font-size: 16px !important;
-    }}
-
-    /* Sidebar logo nhỏ hơn trên mobile */
+    input, textarea, select {{ font-size: 16px !important; }}
     .sidebar-logo-wrap img {{ width: 100px !important; }}
 }}
 
