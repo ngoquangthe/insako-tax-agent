@@ -528,7 +528,7 @@ if page == "💬 Tra cứu AI":
     _sid = st.session_state.session_id
 
     for i, q in enumerate(quick_qs):
-        with cols[i % 3]:
+        with cols[i % 2]:
             if st.button(q, key=f"quick_{i}", use_container_width=True):
                 st.session_state.messages.append({"role": "user", "content": q})
                 supa.save_message(_uname, _sid, "user", q)
