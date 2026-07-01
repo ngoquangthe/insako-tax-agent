@@ -34,6 +34,9 @@ class TaxAgent:
         self.max_tokens = ai_cfg.get("max_tokens", 4096)
         self.api_key = ai_cfg.get("api_key", os.environ.get("ANTHROPIC_API_KEY", ""))
 
+        # Làm sạch API key: chỉ giữ ký tự ASCII thuần (tránh lỗi encoding khi copy-paste)
+        self.api_key = "".join(c for c in self.api_key if ord(c) < 128).strip()
+
         self._client = None
         if ANTHROPIC_AVAILABLE and self.api_key and not self.api_key.startswith("YOUR_"):
             self._client = anthropic.Anthropic(api_key=self.api_key)
