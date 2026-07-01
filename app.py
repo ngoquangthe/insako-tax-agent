@@ -357,6 +357,29 @@ h2::after {{
     margin:3px; border:1px solid #c5cfe8;
 }}
 
+/* Fix màu chữ trong st.chat_message (tránh bị trắng trên nền trắng) */
+[data-testid="stChatMessageContent"] p,
+[data-testid="stChatMessageContent"] li,
+[data-testid="stChatMessageContent"] span,
+[data-testid="stChatMessageContent"] div,
+[data-testid="stChatMessageContent"] strong,
+[data-testid="stChatMessageContent"] em,
+[data-testid="stChatMessageContent"] td,
+[data-testid="stChatMessageContent"] th {{
+    color: #1a1a2e !important;
+}}
+[data-testid="stChatMessageContent"] h1,
+[data-testid="stChatMessageContent"] h2,
+[data-testid="stChatMessageContent"] h3,
+[data-testid="stChatMessageContent"] h4 {{
+    color: #1B3A7A !important;
+}}
+/* Avatar user (bubble màu xanh) – chữ trắng */
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] p,
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] span {{
+    color: #1a1a2e !important;
+}}
+
 /* ── MOBILE RESPONSIVE ── */
 @media (max-width: 768px) {{
 
