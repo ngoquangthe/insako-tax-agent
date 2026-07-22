@@ -9,6 +9,7 @@ import json
 import os
 import sys
 import uuid
+import secrets
 from pathlib import Path
 from datetime import datetime
 
@@ -78,6 +79,63 @@ def _load_users() -> dict:
         "insako": {"name": "Kế toán INSAKO", "password_hash": _hash_password("insako2024"), "role": "admin"},
     }
 
+
+_TOKEN_KEY = "insako_auth_token"
+
+def _make_token(username: str) -> str:
+    """Tạo token = username|random, lưu vào session_state để xác thực sau khi F5."""
+    rand = secrets.token_hex(24)
+    token = f"{username}|{rand}"
+    if "auth_tokens" not in st.session_state:
+        st.session_state["auth_tokens"] = {}
+    st.session_state["auth_tokens"][token] = username
+    return token
+
+def _validate_token(token: str) -> str | None:
+    """Trả về username nếu token hợp lệ, None nếu không."""
+    if not token:
+        return None
+    tokens = st.session_state.get("auth_tokens", {})
+    return tokens.get(token)
+
+def _save_token_to_browser(token: str):
+    """Ghi token vào localStorage của browser qua JS component."""
+    import streamlit.components.v1 as components
+    components.html(f"""
+    <script>
+        localStorage.setItem('{_TOKEN_KEY}', '{token}');
+    </script>
+    """, height=0, scrolling=False)
+
+def _clear_token_from_browser():
+    """Xóa token khỏi localStorage khi logout."""
+    import streamlit.components.v1 as components
+    components.html(f"""
+    <script>
+        localStorage.removeItem('{_TOKEN_KEY}');
+    </script>
+    """, height=0, scrolling=False)
+
+def _read_token_from_browser() -> str | None:
+    """
+    Đọc token từ localStorage qua JS → gửi vào query_params.
+    Cơ chế: JS đọc localStorage rồi đặt vào URL ?_tk=... → Streamlit rerun.
+    """
+    import streamlit.components.v1 as components
+    components.html(f"""
+    <script>
+    (function() {{
+        var tk = localStorage.getItem('{_TOKEN_KEY}');
+        if (tk) {{
+            var url = new URL(window.location.href);
+            if (!url.searchParams.get('_tk')) {{
+                url.searchParams.set('_tk', tk);
+                window.location.replace(url.toString());
+            }}
+        }}
+    }})();
+    </script>
+    """, height=0, scrolling=False)
 
 def _check_login(username: str, password: str, users: dict) -> bool:
     uname = username.strip().lower()
@@ -240,9 +298,13 @@ def _show_login():
             if submitted:
                 users = _load_users()
                 if _check_login(username, password, users):
+                    uname_clean = username.strip().lower()
+                    token = _make_token(uname_clean)
                     st.session_state["authenticated"] = True
-                    st.session_state["username"] = username.strip().lower()
-                    st.session_state["user_name"] = users[username.strip().lower()]["name"]
+                    st.session_state["username"] = uname_clean
+                    st.session_state["user_name"] = users[uname_clean]["name"]
+                    st.session_state["auth_token"] = token
+                    _save_token_to_browser(token)
                     st.rerun()
                 else:
                     st.error("❌ Sai tên đăng nhập hoặc mật khẩu")
@@ -256,8 +318,24 @@ def _show_login():
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# Kiểm tra xác thực
+# Kiểm tra xác thực – hỗ trợ tự đăng nhập lại sau F5 qua localStorage token
 if not st.session_state.get("authenticated", False):
+    # Thử đọc token từ query_params (JS đã đặt vào URL)
+    _tk = st.query_params.get("_tk", "")
+    if _tk:
+        _uname_from_token = _validate_token(_tk)
+        if _uname_from_token:
+            _all_users = _load_users()
+            if _uname_from_token in _all_users:
+                st.session_state["authenticated"] = True
+                st.session_state["username"] = _uname_from_token
+                st.session_state["user_name"] = _all_users[_uname_from_token]["name"]
+                st.session_state["auth_token"] = _tk
+                # Xóa _tk khỏi URL cho gọn
+                st.query_params.pop("_tk", None)
+                st.rerun()
+    # Nếu không có token hợp lệ → show login và inject JS đọc localStorage
+    _read_token_from_browser()
     _show_login()
     st.stop()
 
@@ -719,7 +797,8 @@ with st.sidebar:
         st.rerun()
 
     if st.button("🚪 Đăng xuất"):
-        for k in ["authenticated", "username", "user_name", "messages"]:
+        _clear_token_from_browser()
+        for k in ["authenticated", "username", "user_name", "messages", "auth_token", "auth_tokens"]:
             st.session_state.pop(k, None)
         st.rerun()
 
