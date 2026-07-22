@@ -82,21 +82,43 @@ def _load_users() -> dict:
 
 _TOKEN_KEY = "insako_auth_token"
 
+def _get_token_secret() -> str:
+    """Lấy secret key để ký token – từ Streamlit secrets hoặc fallback cố định."""
+    try:
+        return st.secrets.get("TOKEN_SECRET", "insako-token-secret-2024")
+    except Exception:
+        return "insako-token-secret-2024"
+
 def _make_token(username: str) -> str:
-    """Tạo token = username|random, lưu vào session_state để xác thực sau khi F5."""
-    rand = secrets.token_hex(24)
-    token = f"{username}|{rand}"
-    if "auth_tokens" not in st.session_state:
-        st.session_state["auth_tokens"] = {}
-    st.session_state["auth_tokens"][token] = username
-    return token
+    """
+    Tạo HMAC token tự xác thực: base64(username).signature
+    Không cần lưu server-side → vẫn hợp lệ sau F5/restart.
+    """
+    import base64 as _b64
+    secret = _get_token_secret()
+    b64_user = _b64.urlsafe_b64encode(username.encode()).decode().rstrip("=")
+    sig = hmac.new(secret.encode(), b64_user.encode(), hashlib.sha256).hexdigest()[:32]
+    return f"{b64_user}.{sig}"
 
 def _validate_token(token: str) -> str | None:
-    """Trả về username nếu token hợp lệ, None nếu không."""
-    if not token:
+    """
+    Xác thực HMAC token, trả về username nếu hợp lệ.
+    Hoạt động sau F5 vì không cần session_state.
+    """
+    import base64 as _b64
+    if not token or "." not in token:
         return None
-    tokens = st.session_state.get("auth_tokens", {})
-    return tokens.get(token)
+    try:
+        b64_user, sig = token.rsplit(".", 1)
+        secret = _get_token_secret()
+        expected = hmac.new(secret.encode(), b64_user.encode(), hashlib.sha256).hexdigest()[:32]
+        if not hmac.compare_digest(sig, expected):
+            return None
+        padding = 4 - len(b64_user) % 4
+        username = _b64.urlsafe_b64decode(b64_user + "=" * padding).decode()
+        return username
+    except Exception:
+        return None
 
 def _save_token_to_browser(token: str):
     """Ghi token vào localStorage của browser qua JS component."""
@@ -854,7 +876,7 @@ with st.sidebar:
 
     if st.button("🚪 Đăng xuất"):
         _clear_token_from_browser()
-        for k in ["authenticated", "username", "user_name", "messages", "auth_token", "auth_tokens"]:
+        for k in ["authenticated", "username", "user_name", "messages", "auth_token"]:
             st.session_state.pop(k, None)
         st.rerun()
 
