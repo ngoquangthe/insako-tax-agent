@@ -271,115 +271,148 @@ _logo_sidebar_html = (
 
 st.markdown(f"""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 /* ══════════════════════════════════════════════
-   INSAKO DARK NAVY THEME  –  xanh nền / chữ trắng / accent đỏ
-   Primary  : #1B3A7A  (navy)
-   Dark bg  : #0d2150  (deep navy)
+   INSAKO MODERN LIGHT THEME
+   Primary  : #3A5BF0  (blue)
    Accent   : #C41230  (red)
-   Text     : #e8edf8  (white-ish)
+   Surface  : #ffffff  (white card)
+   BG       : #f0f2fb  (light purple-grey)
 ══════════════════════════════════════════════ */
+
+* {{ font-family: 'Inter', -apple-system, sans-serif !important; box-sizing: border-box; }}
 
 /* ── Nền toàn app ── */
 [data-testid="stAppViewContainer"] {{
-    background: linear-gradient(160deg, #0d2150 0%, #1B3A7A 60%, #163266 100%);
+    background: #f0f2fb !important;
     min-height: 100vh;
 }}
-[data-testid="stMain"] {{ background: transparent; }}
+[data-testid="stMain"] {{ background: transparent !important; }}
 .main .block-container {{
     background: transparent;
-    padding: 1rem 0.75rem 5rem !important;
+    padding: 1rem 1rem 6rem !important;
     max-width: 100% !important;
 }}
 
 /* ── Chữ toàn cục ── */
-[data-testid="stMain"] *, .main * {{
-    color: #e8edf8;
-}}
-p, li, span, label, div {{ color: #e8edf8; }}
-h1 {{ color: #ffffff !important; font-size: 24px !important; font-weight: 700 !important; }}
-h2 {{ color: #ffffff !important; font-size: 20px !important; font-weight: 700 !important; }}
-h3 {{ color: #a0b4d6 !important; font-size: 16px !important; font-weight: 600 !important; }}
+p, li, span, label, div {{ color: #1a2340; }}
+h1 {{ color: #1a2340 !important; font-size: 22px !important; font-weight: 800 !important; letter-spacing: -0.3px; }}
+h2 {{ color: #1a2340 !important; font-size: 18px !important; font-weight: 700 !important; }}
+h3 {{ color: #3A5BF0 !important; font-size: 15px !important; font-weight: 600 !important; }}
 h2::after {{
-    content: ""; display: block; height: 3px; width: 48px;
-    background: #C41230; border-radius: 2px; margin-top: 6px;
+    content: ""; display: block; height: 3px; width: 36px;
+    background: linear-gradient(90deg,#3A5BF0,#C41230);
+    border-radius: 2px; margin-top: 5px;
 }}
 
 /* ── Sidebar ── */
-[data-testid="stSidebar"] {{ background: #0a1a40 !important; border-right: 2px solid #C41230; }}
-[data-testid="stSidebar"] * {{ color: #e8edf8 !important; }}
-[data-testid="stSidebar"] hr {{ border-color: #2d4f9e !important; }}
-[data-testid="stSidebar"] .stRadio label {{
-    font-size: 14px; padding: 4px 0;
+[data-testid="stSidebar"] {{
+    background: linear-gradient(180deg, #1a2e6e 0%, #3A5BF0 100%) !important;
+    border-right: none !important;
+    box-shadow: 4px 0 20px rgba(58,91,240,0.15);
 }}
+[data-testid="stSidebar"] * {{ color: #ffffff !important; }}
+[data-testid="stSidebar"] hr {{ border-color: rgba(255,255,255,0.2) !important; }}
+[data-testid="stSidebar"] .stRadio label {{
+    font-size: 14px !important; padding: 6px 10px !important;
+    border-radius: 10px; transition: background 0.2s;
+}}
+[data-testid="stSidebar"] .stRadio label:hover {{ background: rgba(255,255,255,0.12) !important; }}
 [data-testid="stSidebar"] .stButton button {{
-    background: #C41230 !important; color: white !important;
-    border: none !important; border-radius: 8px !important;
-    font-weight: 600 !important; min-height: 44px !important;
+    background: rgba(255,255,255,0.15) !important;
+    color: white !important; border: 1px solid rgba(255,255,255,0.3) !important;
+    border-radius: 12px !important; font-weight: 600 !important;
+    min-height: 42px !important; transition: background 0.2s !important;
+}}
+[data-testid="stSidebar"] .stButton button:hover {{
+    background: rgba(255,255,255,0.25) !important;
 }}
 
 /* Sidebar logo strip */
 .sidebar-logo-wrap {{
-    background: linear-gradient(180deg, #071630 0%, #0d2150 100%);
-    padding: 1rem 0.5rem 0.75rem;
-    margin: -1rem -1rem 0.5rem;
-    border-bottom: 3px solid #C41230; text-align: center;
+    background: rgba(0,0,0,0.2);
+    padding: 1.2rem 0.75rem 1rem;
+    margin: -1rem -1rem 0.75rem;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    text-align: center;
+    border-radius: 0 0 16px 16px;
 }}
-.sidebar-app-name {{ font-size: 13px; font-weight: 700; color: #ffffff !important; letter-spacing: 0.5px; margin-top: 4px; }}
-.sidebar-app-sub  {{ font-size: 11px; color: #a0b4d6 !important; margin-top: 1px; }}
+.sidebar-app-name {{ font-size: 13px; font-weight: 700; color: #fff !important; letter-spacing: 0.8px; margin-top: 6px; text-transform: uppercase; }}
+.sidebar-app-sub  {{ font-size: 11px; color: rgba(255,255,255,0.7) !important; margin-top: 2px; }}
 
 /* ── Nút ── */
 div[data-testid="stButton"] > button,
 div.stButton > button {{
-    background: rgba(255,255,255,0.08) !important;
-    color: #e8edf8 !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #3A5BF0 !important;
+    border: 1.5px solid #e0e5f8 !important;
+    border-radius: 12px !important;
     min-height: 44px !important;
     font-size: 14px !important;
-    transition: background 0.2s;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(58,91,240,0.08);
+    transition: all 0.2s !important;
 }}
 div[data-testid="stButton"] > button:hover,
 div.stButton > button:hover {{
-    background: rgba(196,18,48,0.25) !important;
-    border-color: #C41230 !important;
+    background: #f0f4ff !important;
+    border-color: #3A5BF0 !important;
+    box-shadow: 0 4px 14px rgba(58,91,240,0.18) !important;
+    transform: translateY(-1px);
 }}
 div[data-testid="stButton"] > button[kind="primary"],
 div.stButton > button[kind="primary"] {{
-    background: #C41230 !important;
-    border-color: #C41230 !important;
+    background: linear-gradient(135deg,#3A5BF0,#5b7fff) !important;
+    border: none !important;
     color: white !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 14px rgba(58,91,240,0.35) !important;
 }}
-div[data-testid="stButton"] > button[kind="primary"]:hover {{ background: #a50e27 !important; }}
+div[data-testid="stButton"] > button[kind="primary"]:hover {{
+    background: linear-gradient(135deg,#2d4fd6,#4a6eee) !important;
+    box-shadow: 0 6px 20px rgba(58,91,240,0.45) !important;
+    transform: translateY(-1px);
+}}
 
-/* ── Form submit button ── */
+/* ── Form submit ── */
 div[data-testid="stForm"] button[kind="primaryFormSubmit"] {{
-    background: #C41230 !important; color: white !important;
-    border: none !important; border-radius: 8px !important;
-    font-weight: 700 !important; min-height: 44px !important;
+    background: linear-gradient(135deg,#3A5BF0,#5b7fff) !important;
+    color: white !important; border: none !important;
+    border-radius: 12px !important; font-weight: 700 !important;
+    min-height: 48px !important;
+    box-shadow: 0 4px 14px rgba(58,91,240,0.35) !important;
 }}
 
 /* ── Input / Textarea / Select ── */
 input, textarea, select,
 [data-testid="stTextInput"] input,
 [data-testid="stTextArea"] textarea {{
-    background: rgba(255,255,255,0.08) !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(255,255,255,0.25) !important;
-    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #1a2340 !important;
+    border: 1.5px solid #dce2f5 !important;
+    border-radius: 12px !important;
     font-size: 14px !important;
+    font-weight: 500 !important;
+    box-shadow: 0 1px 4px rgba(58,91,240,0.06) !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
 }}
-input::placeholder, textarea::placeholder {{ color: #7a93bf !important; }}
+input:focus, textarea:focus {{
+    border-color: #3A5BF0 !important;
+    box-shadow: 0 0 0 3px rgba(58,91,240,0.12) !important;
+}}
+input::placeholder, textarea::placeholder {{ color: #9aa5c9 !important; font-weight: 400 !important; }}
 [data-testid="stTextInput"] label,
 [data-testid="stTextArea"] label,
-[data-testid="stSelectbox"] label {{ color: #a0b4d6 !important; font-size: 13px !important; }}
+[data-testid="stSelectbox"] label {{ color: #5c6b99 !important; font-size: 13px !important; font-weight: 500 !important; }}
 
-/* ── Chat message – nội dung AI ── */
+/* ── Chat message ── */
 [data-testid="stChatMessage"] {{
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-    border-radius: 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #e8edf8 !important;
+    border-radius: 16px !important;
     margin-bottom: 0.75rem !important;
+    box-shadow: 0 2px 10px rgba(58,91,240,0.07) !important;
 }}
 [data-testid="stChatMessageContent"] p,
 [data-testid="stChatMessageContent"] li,
@@ -388,166 +421,174 @@ input::placeholder, textarea::placeholder {{ color: #7a93bf !important; }}
 [data-testid="stChatMessageContent"] strong,
 [data-testid="stChatMessageContent"] em,
 [data-testid="stChatMessageContent"] td,
-[data-testid="stChatMessageContent"] th {{ color: #e8edf8 !important; }}
+[data-testid="stChatMessageContent"] th {{ color: #1a2340 !important; }}
 [data-testid="stChatMessageContent"] h1,
 [data-testid="stChatMessageContent"] h2,
 [data-testid="stChatMessageContent"] h3,
-[data-testid="stChatMessageContent"] h4 {{ color: #ffffff !important; }}
+[data-testid="stChatMessageContent"] h4 {{ color: #1a2340 !important; }}
 [data-testid="stChatMessageContent"] code {{
-    background: rgba(196,18,48,0.2) !important;
-    color: #ffb3be !important;
-    border-radius: 4px; padding: 1px 5px;
+    background: #f0f4ff !important; color: #3A5BF0 !important;
+    border-radius: 6px; padding: 2px 6px; font-size: 13px;
 }}
-[data-testid="stChatMessageContent"] hr {{
-    border-color: rgba(255,255,255,0.15) !important;
+[data-testid="stChatMessageContent"] hr {{ border-color: #e8edf8 !important; }}
+[data-testid="stChatMessageContent"] pre {{
+    overflow-x: auto !important; white-space: pre-wrap !important;
+    word-break: break-word !important; max-width: 100% !important;
+    background: #f7f9ff !important; border: 1px solid #dce2f5 !important;
+    border-radius: 12px !important; padding: 12px 14px !important;
+    font-size: 13px !important; line-height: 1.6 !important;
 }}
+[data-testid="stChatMessageContent"] pre code {{ color: #3A5BF0 !important; background: transparent !important; }}
 
 /* ── Chat input box ── */
 [data-testid="stBottom"] {{
-    background: linear-gradient(0deg, #0a1a40 80%, transparent) !important;
-    padding: 0.75rem 1.5rem 1rem !important;
-    left: 0 !important; right: 0 !important;
-    width: 100% !important;
+    background: linear-gradient(0deg, #f0f2fb 85%, transparent) !important;
+    padding: 0.75rem 1rem 1rem !important;
+    left: 0 !important; right: 0 !important; width: 100% !important;
 }}
-[data-testid="stBottom"] > div {{
-    max-width: 100% !important;
-    width: 100% !important;
-}}
-[data-testid="stChatInput"] {{
-    width: 100% !important;
-    max-width: 100% !important;
-}}
+[data-testid="stBottom"] > div {{ max-width: 100% !important; width: 100% !important; }}
+[data-testid="stChatInput"] {{ width: 100% !important; max-width: 100% !important; }}
 [data-testid="stChatInput"] textarea {{
     background: #ffffff !important;
-    color: #0a2a5e !important;
-    border: 2px solid rgba(196,18,48,0.6) !important;
-    border-radius: 12px !important;
+    color: #1a2340 !important;
+    border: 2px solid #dce2f5 !important;
+    border-radius: 16px !important;
     min-height: 54px !important;
     font-size: 15px !important;
     font-weight: 500 !important;
-    padding: 14px 60px 14px 16px !important;
-    line-height: 1.5 !important;
-    width: 100% !important;
+    padding: 14px 60px 14px 18px !important;
+    box-shadow: 0 2px 12px rgba(58,91,240,0.1) !important;
 }}
-[data-testid="stChatInput"] textarea::placeholder {{ color: #7a93bf !important; font-weight: 400 !important; }}
+[data-testid="stChatInput"] textarea::placeholder {{ color: #9aa5c9 !important; }}
 [data-testid="stChatInput"] textarea:focus {{
-    border-color: #C41230 !important;
-    box-shadow: 0 0 0 3px rgba(196,18,48,0.2) !important;
-    outline: none !important;
+    border-color: #3A5BF0 !important;
+    box-shadow: 0 0 0 3px rgba(58,91,240,0.15) !important;
 }}
 [data-testid="stChatInput"] button {{
-    background: #C41230 !important;
-    border-radius: 8px !important;
-    width: 44px !important; height: 44px !important;
+    background: linear-gradient(135deg,#3A5BF0,#5b7fff) !important;
+    border-radius: 12px !important; width: 44px !important; height: 44px !important;
+    box-shadow: 0 4px 12px rgba(58,91,240,0.35) !important;
 }}
 
 /* ── Card ── */
 .insako-card {{
-    background: rgba(255,255,255,0.07);
-    border-radius: 12px;
-    padding: 1.2rem 1.5rem;
-    border: 1px solid rgba(255,255,255,0.15);
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid #e8edf8;
     margin-bottom: 1rem;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 16px rgba(58,91,240,0.08);
+    transition: box-shadow 0.2s;
 }}
-.insako-card-title {{ font-size: 15px; font-weight: 600; color: #ffffff !important; margin-bottom: 0.5rem; }}
+.insako-card:hover {{ box-shadow: 0 8px 24px rgba(58,91,240,0.14); }}
+.insako-card-title {{ font-size: 15px; font-weight: 700; color: #1a2340 !important; margin-bottom: 0.5rem; }}
 
 /* ── Metric card ── */
-.metric-val {{ font-size: 28px; font-weight: 700; color: #ffffff; }}
-.metric-lbl {{ font-size: 12px; color: #a0b4d6; margin-top: 2px; }}
+.metric-val {{ font-size: 28px; font-weight: 800; color: #3A5BF0 !important; }}
+.metric-lbl {{ font-size: 12px; color: #7a8ab8 !important; margin-top: 2px; font-weight: 500; }}
 
 /* ── Badge ── */
-.badge-red    {{ background:rgba(196,18,48,0.3); color:#ff8096; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
-.badge-yellow {{ background:rgba(234,179,8,0.2); color:#fde68a; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
-.badge-green  {{ background:rgba(22,163,74,0.2); color:#86efac; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
-.badge-blue   {{ background:rgba(96,165,250,0.2); color:#93c5fd; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:600; }}
+.badge-red    {{ background:#fff0f2; color:#C41230; border:1px solid #ffd6dc; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:700; }}
+.badge-yellow {{ background:#fffbeb; color:#b45309; border:1px solid #fde68a; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:700; }}
+.badge-green  {{ background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:700; }}
+.badge-blue   {{ background:#f0f4ff; color:#3A5BF0; border:1px solid #c7d4fc; border-radius:20px; padding:3px 10px; font-size:12px; font-weight:700; }}
 
 /* ── Chip ── */
 .chip {{
-    display:inline-block; background:rgba(255,255,255,0.1); color:#e8edf8;
+    display:inline-block; background:#f0f4ff; color:#3A5BF0;
     border-radius:20px; padding:4px 12px; font-size:13px;
-    margin:3px; border:1px solid rgba(255,255,255,0.2);
+    margin:3px; border:1px solid #c7d4fc; font-weight:500;
 }}
 
 /* ── Divider ── */
-hr {{ border-color: rgba(255,255,255,0.15) !important; }}
+hr {{ border-color: #e8edf8 !important; }}
 
 /* ── Expander ── */
 [data-testid="stExpander"] {{
-    background: rgba(255,255,255,0.05) !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
-    border-radius: 10px !important;
+    background: #ffffff !important;
+    border: 1px solid #e8edf8 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 8px rgba(58,91,240,0.06) !important;
 }}
-[data-testid="stExpander"] summary {{ color: #e8edf8 !important; }}
+[data-testid="stExpander"] summary {{ color: #1a2340 !important; font-weight: 600 !important; }}
 
 /* ── Selectbox / Radio ── */
 [data-testid="stSelectbox"] div[data-baseweb="select"] > div {{
-    background: rgba(255,255,255,0.08) !important;
-    border-color: rgba(255,255,255,0.2) !important;
-    color: #e8edf8 !important;
+    background: #ffffff !important;
+    border-color: #dce2f5 !important;
+    color: #1a2340 !important;
+    border-radius: 12px !important;
 }}
-.stRadio > div {{ gap: 6px; }}
-.stRadio label {{ color: #e8edf8 !important; }}
-
-/* ── Checkbox ── */
-.stCheckbox label {{ color: #e8edf8 !important; }}
+.stRadio > div {{ gap: 8px; }}
+.stRadio label {{ color: #1a2340 !important; font-weight: 500 !important; }}
+.stCheckbox label {{ color: #1a2340 !important; font-weight: 500 !important; }}
 
 /* ── Progress bar ── */
-[data-testid="stProgress"] > div > div {{ background: #C41230 !important; }}
+[data-testid="stProgress"] > div {{ background: #e8edf8 !important; border-radius: 8px !important; }}
+[data-testid="stProgress"] > div > div {{ background: linear-gradient(90deg,#3A5BF0,#5b7fff) !important; border-radius: 8px !important; }}
 
-/* ── Spinner ── */
-[data-testid="stSpinner"] {{ color: #a0b4d6 !important; }}
-
-/* ── Alert / Info boxes ── */
+/* ── Alert boxes ── */
 [data-testid="stAlert"] {{
-    background: rgba(255,255,255,0.07) !important;
-    border-color: rgba(255,255,255,0.2) !important;
-    color: #e8edf8 !important;
-    border-radius: 10px !important;
+    background: #f7f9ff !important;
+    border-color: #c7d4fc !important;
+    color: #1a2340 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(58,91,240,0.07) !important;
 }}
 
-/* ── Code block trong chat: không tràn ngang ── */
-[data-testid="stChatMessageContent"] pre {{
-    overflow-x: auto !important;
-    white-space: pre-wrap !important;
-    word-break: break-word !important;
-    max-width: 100% !important;
-    background: rgba(0,0,0,0.35) !important;
-    border: 1px solid rgba(196,18,48,0.3) !important;
-    border-radius: 8px !important;
-    padding: 10px 12px !important;
-    font-size: 13px !important;
-    line-height: 1.6 !important;
+/* ── Tabs ── */
+[data-testid="stTabs"] [data-baseweb="tab-list"] {{
+    background: #ffffff !important;
+    border-radius: 14px !important;
+    padding: 4px !important;
+    border: 1px solid #e8edf8 !important;
+    box-shadow: 0 2px 8px rgba(58,91,240,0.07) !important;
 }}
-[data-testid="stChatMessageContent"] pre code {{
-    color: #ffb3be !important;
-    background: transparent !important;
+[data-testid="stTabs"] [data-baseweb="tab"] {{
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    color: #7a8ab8 !important;
 }}
+[data-testid="stTabs"] [aria-selected="true"] {{
+    background: linear-gradient(135deg,#3A5BF0,#5b7fff) !important;
+    color: #ffffff !important;
+}}
+
+/* ── st.metric ── */
+[data-testid="stMetric"] {{
+    background: #ffffff;
+    border: 1px solid #e8edf8;
+    border-radius: 16px;
+    padding: 16px 18px !important;
+    box-shadow: 0 4px 14px rgba(58,91,240,0.08);
+}}
+[data-testid="stMetricValue"] {{ color: #3A5BF0 !important; font-weight: 800 !important; }}
+[data-testid="stMetricLabel"] {{ color: #7a8ab8 !important; font-weight: 500 !important; }}
 
 /* ── MOBILE RESPONSIVE ── */
 @media (max-width: 768px) {{
     .main .block-container {{
-        padding: 0.75rem 0.75rem 5rem !important;
-        max-width: 100% !important;
+        padding: 0.75rem 0.75rem 6rem !important;
     }}
     h1 {{ font-size: 20px !important; }}
-    h2 {{ font-size: 17px !important; }}
-    h3 {{ font-size: 15px !important; }}
-    .metric-val {{ font-size: 22px !important; }}
-    .insako-card {{ padding: 0.9rem 1rem !important; }}
+    h2 {{ font-size: 16px !important; }}
+    .metric-val {{ font-size: 24px !important; }}
+    .insako-card {{ padding: 1rem !important; border-radius: 14px !important; }}
     input, textarea, select {{ font-size: 16px !important; }}
-    .sidebar-logo-wrap img {{ width: 100px !important; }}
+    [data-testid="stChatInput"] textarea {{ font-size: 16px !important; border-radius: 14px !important; }}
+    [data-testid="stChatInput"] button {{ width: 40px !important; height: 40px !important; }}
+    [data-testid="stSidebar"] {{ box-shadow: none !important; }}
 }}
 
 /* Login mobile */
 @media (max-width: 600px) {{
     .login-wrap {{
-        margin: 20px 12px 0 !important;
+        margin: 16px 10px 0 !important;
         padding: 1.5rem 1.2rem !important;
-        border-radius: 16px !important;
+        border-radius: 20px !important;
     }}
-    .login-wrap img {{ height: 52px !important; }}
-    .login-title {{ font-size: 17px !important; }}
+    .login-wrap img {{ height: 48px !important; }}
+    .login-title {{ font-size: 16px !important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
