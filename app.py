@@ -250,194 +250,127 @@ def _show_login():
     logo_b64 = _logo_base64()
     logo_src = f"data:image/png;base64,{logo_b64}" if logo_b64 else ""
 
+    logo_img_tag = f'<img src="{logo_src}" style="width:56px;height:56px;object-fit:contain;">' if logo_src else '<span style="font-size:32px;">🏭</span>'
+
+    # Render toàn bộ login dưới dạng 1 HTML component cố định, tránh bị Streamlit đẩy xuống
+    import streamlit.components.v1 as _cmp
+    _cmp.html(f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+    * {{ box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, 'Inter', sans-serif; }}
+    body {{
+        min-height: 100vh;
+        background: linear-gradient(160deg, #1a2e6e 0%, #3A5BF0 60%, #5b7fff 100%);
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px 16px;
+    }}
+    .card {{
+        background: #fff;
+        border-radius: 24px;
+        padding: 28px 24px 24px;
+        width: 100%; max-width: 360px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+    }}
+    .logo-wrap {{
+        width: 72px; height: 72px; border-radius: 50%;
+        background: #f0f4ff;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 14px; overflow: hidden;
+    }}
+    h2 {{ text-align:center; font-size:20px; font-weight:800; color:#1a2340; margin-bottom:4px; }}
+    .sub {{ text-align:center; font-size:12px; color:#7a8ab8; margin-bottom:20px; }}
+    label {{ display:block; font-size:12px; font-weight:600; color:#4a5580; margin-bottom:5px; }}
+    input {{
+        width:100%; height:44px; padding:0 14px;
+        background:#f4f6ff; border:1.5px solid #dce2f5; border-radius:12px;
+        font-size:14px; color:#1a2340; outline:none;
+        transition:border-color .2s, box-shadow .2s;
+    }}
+    input:focus {{ border-color:#3A5BF0; background:#fff; box-shadow:0 0 0 3px rgba(58,91,240,.12); }}
+    input::placeholder {{ color:#b0bcd8; }}
+    .field {{ margin-bottom:14px; }}
+    .btn {{
+        width:100%; height:48px; margin-top:6px;
+        background:linear-gradient(135deg,#3A5BF0,#5b7fff);
+        border:none; border-radius:12px; color:#fff;
+        font-size:15px; font-weight:700; cursor:pointer;
+        box-shadow:0 6px 20px rgba(58,91,240,.4);
+        transition:all .2s;
+    }}
+    .btn:hover {{ box-shadow:0 8px 28px rgba(58,91,240,.55); transform:translateY(-1px); }}
+    .err {{ color:#c41230; font-size:13px; margin-top:8px; text-align:center; background:#fff0f2; border-radius:8px; padding:8px; display:none; }}
+    .hint {{ text-align:center; font-size:11px; color:#9aa5c9; margin-top:14px; }}
+    </style>
+    </head>
+    <body>
+    <div class="card">
+        <div class="logo-wrap">{logo_img_tag}</div>
+        <h2>INSAKO Tax Agent</h2>
+        <p class="sub">Sổ tay Kế toán – Thuế – Tài chính nội bộ</p>
+        <div class="field">
+            <label>Tên đăng nhập</label>
+            <input id="uname" type="text" placeholder="Nhập username..." autocomplete="username">
+        </div>
+        <div class="field">
+            <label>Mật khẩu</label>
+            <input id="pw" type="password" placeholder="Nhập mật khẩu..." autocomplete="current-password">
+        </div>
+        <button class="btn" onclick="doLogin()">Đăng nhập</button>
+        <div class="err" id="err">Sai tên đăng nhập hoặc mật khẩu</div>
+        <p class="hint">🔒 Hệ thống nội bộ · Chỉ dành cho nhân viên INSAKO</p>
+    </div>
+    <script>
+    function doLogin() {{
+        var u = document.getElementById('uname').value.trim();
+        var p = document.getElementById('pw').value;
+        if (!u || !p) {{ showErr('Vui lòng nhập đầy đủ thông tin'); return; }}
+        // Gửi lên Streamlit qua query params để Python xử lý
+        var url = new URL(window.parent.location.href);
+        url.searchParams.set('_lu', u);
+        url.searchParams.set('_lp', btoa(unescape(encodeURIComponent(p))));
+        window.parent.location.replace(url.toString());
+    }}
+    function showErr(msg) {{
+        var e = document.getElementById('err');
+        e.textContent = msg; e.style.display = 'block';
+    }}
+    document.getElementById('pw').addEventListener('keydown', function(e) {{
+        if (e.key === 'Enter') doLogin();
+    }});
+    document.getElementById('uname').addEventListener('keydown', function(e) {{
+        if (e.key === 'Enter') document.getElementById('pw').focus();
+    }});
+    // Hiện lỗi nếu query có _lerr
+    var params = new URLSearchParams(window.parent.location.search);
+    if (params.get('_lerr')) showErr('Sai tên đăng nhập hoặc mật khẩu');
+    </script>
+    </body>
+    </html>
+    """, height=420, scrolling=False)
+
+    # Ẩn toàn bộ UI Streamlit phía sau component
     st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    * { font-family: 'Inter', sans-serif !important; }
-
-    /* Ẩn toàn bộ chrome của Streamlit */
-    #MainMenu, footer, header,
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"] { display: none !important; }
-
-    /* Nền gradient */
-    [data-testid="stAppViewContainer"],
-    [data-testid="stMain"],
-    .main { background: transparent !important; }
-
-    body, [data-testid="stAppViewContainer"] {
+    #MainMenu, footer, header, [data-testid="stToolbar"],
+    [data-testid="stDecoration"], [data-testid="stStatusWidget"],
+    [data-testid="stMain"] > div > div > div:not(:first-child) { display:none !important; }
+    [data-testid="stAppViewContainer"] {
         background: linear-gradient(160deg, #1a2e6e 0%, #3A5BF0 60%, #5b7fff 100%) !important;
-        min-height: 100vh;
     }
-
-    .main .block-container {
-        padding: 0 !important;
-        max-width: 100% !important;
-    }
-
-    /* Card login – mobile style */
-    .lcard {
-        width: 100%;
-        max-width: 380px;
-        margin: 0 auto;
-        background: #fff;
-        border-radius: 28px;
-        padding: 2.5rem 2rem 2rem;
-        box-shadow: 0 24px 60px rgba(0,0,0,0.25);
-    }
-
-    /* Logo vòng tròn */
-    .llogo-wrap {
-        width: 80px; height: 80px;
-        border-radius: 50%;
-        background: #fff;
-        box-shadow: 0 8px 24px rgba(58,91,240,0.2);
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 1.2rem;
-        overflow: hidden;
-    }
-    .llogo-wrap img { width: 64px; height: 64px; object-fit: contain; }
-    .llogo-emoji { font-size: 36px; line-height: 1; }
-
-    .lapp-name {
-        text-align: center;
-        font-size: 22px; font-weight: 800;
-        color: #1a2340; margin-bottom: 2px;
-        letter-spacing: -0.3px;
-    }
-    .lapp-sub {
-        text-align: center;
-        font-size: 13px; color: #7a8ab8; margin-bottom: 1.6rem;
-        font-weight: 500;
-    }
-
-    /* Input trong form login */
-    [data-testid="stForm"] input {
-        background: #f4f6ff !important;
-        border: 1.5px solid #dce2f5 !important;
-        border-radius: 14px !important;
-        padding: 14px 16px !important;
-        font-size: 15px !important;
-        font-weight: 500 !important;
-        color: #1a2340 !important;
-        height: 52px !important;
-        transition: border-color 0.2s, box-shadow 0.2s !important;
-    }
-    [data-testid="stForm"] input:focus {
-        border-color: #3A5BF0 !important;
-        background: #fff !important;
-        box-shadow: 0 0 0 3px rgba(58,91,240,0.12) !important;
-    }
-    [data-testid="stForm"] input::placeholder { color: #b0bcd8 !important; }
-    [data-testid="stForm"] label {
-        font-size: 13px !important; font-weight: 600 !important;
-        color: #4a5580 !important; margin-bottom: 4px !important;
-    }
-
-    /* Nút đăng nhập */
-    [data-testid="stForm"] button[kind="primaryFormSubmit"] {
-        background: linear-gradient(135deg, #3A5BF0, #5b7fff) !important;
-        border: none !important;
-        border-radius: 14px !important;
-        height: 52px !important;
-        font-size: 16px !important;
-        font-weight: 700 !important;
-        color: white !important;
-        box-shadow: 0 6px 20px rgba(58,91,240,0.4) !important;
-        margin-top: 6px !important;
-        transition: all 0.2s !important;
-    }
-    [data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
-        box-shadow: 0 8px 28px rgba(58,91,240,0.55) !important;
-        transform: translateY(-1px) !important;
-    }
-
-    /* Caption + expander quên mật khẩu */
-    [data-testid="stCaptionContainer"] p { color: #9aa5c9 !important; font-size: 12px !important; text-align: center !important; }
-    [data-testid="stExpander"] {
-        background: #f7f9ff !important;
-        border: 1px solid #e0e8ff !important;
-        border-radius: 14px !important;
-    }
-    [data-testid="stExpander"] summary { color: #3A5BF0 !important; font-size: 13px !important; font-weight: 600 !important; }
-
-    /* Alert lỗi */
-    [data-testid="stAlert"] {
-        border-radius: 12px !important;
-        font-size: 14px !important;
-    }
-
-    /* Full-screen centering wrapper */
-    .login-page-outer {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 24px 16px;
-    }
-
-    /* Tagline phía trên card */
-    .ltag {
-        color: rgba(255,255,255,0.75);
-        font-size: 13px; font-weight: 500;
-        text-align: center;
-        margin-bottom: 20px;
-        letter-spacing: 0.3px;
-    }
-
-    @media (max-width: 480px) {
-        .lcard { padding: 2rem 1.4rem 1.6rem; border-radius: 22px; }
-        .lapp-name { font-size: 20px; }
-    }
+    .main .block-container { padding: 0 !important; max-width:100% !important; }
+    [data-testid="stMain"], .main { background: transparent !important; }
     </style>
     """, unsafe_allow_html=True)
 
-    # Outer wrapper căn giữa toàn màn hình
-    st.markdown('<div class="login-page-outer">', unsafe_allow_html=True)
-    st.markdown('<p class="ltag">🔒 Hệ thống nội bộ INSAKO · Chỉ dành cho nhân viên</p>', unsafe_allow_html=True)
-    st.markdown('<div class="lcard">', unsafe_allow_html=True)
 
-    # Logo + tên app
-    if logo_src:
-        st.markdown(f'<div class="llogo-wrap"><img src="{logo_src}"></div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="llogo-wrap"><span class="llogo-emoji">🏭</span></div>', unsafe_allow_html=True)
-    st.markdown('<div class="lapp-name">INSAKO Tax Agent</div>', unsafe_allow_html=True)
-    st.markdown('<div class="lapp-sub">Sổ tay Kế toán – Thuế – Tài chính nội bộ</div>', unsafe_allow_html=True)
-
-    with st.form("login_form"):
-        username = st.text_input("Tên đăng nhập", placeholder="Nhập username...")
-        password = st.text_input("Mật khẩu", type="password", placeholder="Nhập mật khẩu...")
-        submitted = st.form_submit_button("Đăng nhập", use_container_width=True, type="primary")
-
-        if submitted:
-            users = _load_users()
-            if _check_login(username, password, users):
-                uname_clean = username.strip().lower()
-                token = _make_token(uname_clean)
-                st.session_state["authenticated"] = True
-                st.session_state["username"] = uname_clean
-                st.session_state["user_name"] = users[uname_clean]["name"]
-                st.session_state["auth_token"] = token
-                _save_token_to_browser(token)
-                st.rerun()
-            else:
-                st.error("Sai tên đăng nhập hoặc mật khẩu")
-
-    st.caption("Liên hệ quản trị viên nếu quên mật khẩu.")
-
-    with st.expander("🔑 Quên mật khẩu?"):
-        _forgot_password_ui()
-
-    st.markdown('</div>', unsafe_allow_html=True)  # lcard
-    st.markdown('</div>', unsafe_allow_html=True)  # login-page-outer
-
-
-# Kiểm tra xác thực – hỗ trợ tự đăng nhập lại sau F5 qua localStorage token
+# Kiểm tra xác thực
 if not st.session_state.get("authenticated", False):
-    # Thử đọc token từ query_params (JS đã đặt vào URL)
+    import base64 as _b64
+
+    # 1. Thử auto-login qua localStorage token (sau F5)
     _tk = st.query_params.get("_tk", "")
     if _tk:
         _uname_from_token = _validate_token(_tk)
@@ -448,11 +381,38 @@ if not st.session_state.get("authenticated", False):
                 st.session_state["username"] = _uname_from_token
                 st.session_state["user_name"] = _all_users[_uname_from_token]["name"]
                 st.session_state["auth_token"] = _tk
-                # Xóa _tk khỏi URL cho gọn
-                st.query_params.pop("_tk", None)
+                st.query_params.clear()
                 st.rerun()
-    # Nếu không có token hợp lệ → show login và inject JS đọc localStorage
+
+    # 2. Thử login qua form HTML (query params _lu / _lp)
+    _lu = st.query_params.get("_lu", "")
+    _lp = st.query_params.get("_lp", "")
+    if _lu and _lp:
+        try:
+            _pw_decoded = _b64.b64decode(_lp.encode()).decode("utf-8")
+        except Exception:
+            _pw_decoded = ""
+        _all_users = _load_users()
+        if _pw_decoded and _check_login(_lu, _pw_decoded, _all_users):
+            _uname_c = _lu.strip().lower()
+            _token = _make_token(_uname_c)
+            st.session_state["authenticated"] = True
+            st.session_state["username"] = _uname_c
+            st.session_state["user_name"] = _all_users[_uname_c]["name"]
+            st.session_state["auth_token"] = _token
+            st.query_params.clear()
+            _save_token_to_browser(_token)
+            st.rerun()
+        else:
+            # Sai mật khẩu – báo lỗi qua query param _lerr
+            st.query_params.clear()
+            st.query_params["_lerr"] = "1"
+            st.rerun()
+
+    # 3. Inject JS đọc localStorage (auto F5 flow)
     _read_token_from_browser()
+
+    # 4. Show login page
     _show_login()
     st.stop()
 
