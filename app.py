@@ -116,9 +116,8 @@ def _save_token_to_url(token: str):
     st.query_params["_tk"] = token
 
 def _clear_token_from_url():
-    """Xóa token khỏi URL khi logout."""
+    """Xoa token khoi URL khi logout."""
     st.query_params.pop("_tk", None)
-    """, height=0, scrolling=False)
 
 def _check_login(username: str, password: str, users: dict) -> bool:
     uname = username.strip().lower()
