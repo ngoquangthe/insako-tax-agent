@@ -551,54 +551,47 @@ input::placeholder, textarea::placeholder {{ color: #9aa5c9 !important; font-wei
 
 /* ── Chat input box ── */
 [data-testid="stBottom"] {{
-    background: linear-gradient(0deg, #f0f2fb 85%, transparent) !important;
+    background: transparent !important;
     padding: 0.5rem 1rem 0.75rem !important;
     left: 0 !important; right: 0 !important; width: 100% !important;
 }}
 [data-testid="stBottom"] > div {{ max-width: 100% !important; width: 100% !important; }}
 
-/* Container tổng của chat input */
-[data-testid="stChatInput"] {{
-    width: 100% !important;
-    max-width: 100% !important;
-    position: relative !important;
-    display: flex !important;
-    align-items: center !important;
-    background: #ffffff !important;
-    border: 2px solid #dce2f5 !important;
-    border-radius: 16px !important;
-    box-shadow: 0 2px 12px rgba(58,91,240,0.1) !important;
-    overflow: hidden !important;
-    min-height: 52px !important;
-}}
-[data-testid="stChatInput"]:focus-within {{
-    border-color: #3A5BF0 !important;
-    box-shadow: 0 0 0 3px rgba(58,91,240,0.15) !important;
+/* Xóa tất cả nền/border của wrapper bên ngoài stChatInput */
+[data-testid="stBottom"] > div > div,
+[data-testid="stBottom"] > div > div > div {{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
 }}
 
-/* Textarea bên trong – không có border riêng */
+/* Chỉ style ô input thật sự */
 [data-testid="stChatInput"] textarea {{
-    background: transparent !important;
+    background: #ffffff !important;
     color: #1a2340 !important;
-    border: none !important;
-    border-radius: 0 !important;
+    border: 2px solid #dce2f5 !important;
+    border-radius: 16px !important;
     min-height: 52px !important;
     font-size: 15px !important;
     font-weight: 500 !important;
     padding: 14px 60px 14px 18px !important;
-    box-shadow: none !important;
-    outline: none !important;
+    box-shadow: 0 2px 12px rgba(58,91,240,0.1) !important;
     resize: none !important;
-    flex: 1 !important;
+    width: 100% !important;
+}}
+[data-testid="stChatInput"] textarea:focus {{
+    border-color: #3A5BF0 !important;
+    box-shadow: 0 0 0 3px rgba(58,91,240,0.15) !important;
+    outline: none !important;
 }}
 [data-testid="stChatInput"] textarea::placeholder {{ color: #9aa5c9 !important; }}
 
-/* Nút gửi – nằm bên phải, absolute bên trong container */
+/* Nút gửi */
 [data-testid="stChatInput"] button {{
     position: absolute !important;
-    right: 8px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
+    right: 10px !important;
+    bottom: 8px !important;
     background: linear-gradient(135deg,#3A5BF0,#5b7fff) !important;
     border: none !important;
     border-radius: 10px !important;
