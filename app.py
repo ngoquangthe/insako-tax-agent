@@ -12,6 +12,7 @@ import uuid
 import secrets
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
 
 # Force UTF-8 trên mọi môi trường (Linux Streamlit Cloud, Windows)
 os.environ.setdefault("PYTHONUTF8", "1")
@@ -94,7 +95,7 @@ def _make_token(username: str) -> str:
     sig = hmac.new(secret.encode(), b64_user.encode(), hashlib.sha256).hexdigest()[:32]
     return f"{b64_user}.{sig}"
 
-def _validate_token(token: str) -> str | None:
+def _validate_token(token: str) -> Optional[str]:
     """Trả về username nếu token HMAC hợp lệ."""
     import base64 as _b64
     if not token or "." not in token:
