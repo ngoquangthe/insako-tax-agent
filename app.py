@@ -132,7 +132,7 @@ def _check_login(username: str, password: str, users: dict) -> bool:
 
 
 def _forgot_password_ui():
-    """Quên mật khẩu: chọn kênh (SMS/email) → gửi OTP → đặt mật khẩu mới."""
+    """Quen mat khau: chon kenh (SMS/email) -> gui OTP -> dat mat khau moi."""
     step = st.session_state.get("fp_step", 1)
 
     if step == 1:
