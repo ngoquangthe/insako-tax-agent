@@ -121,38 +121,59 @@ def _validate_token(token: str) -> str | None:
         return None
 
 def _save_token_to_browser(token: str):
-    """Ghi token vào localStorage của browser qua JS component."""
+    """Ghi token vào localStorage của TRANG CHA qua postMessage."""
     import streamlit.components.v1 as components
     components.html(f"""
     <script>
-        localStorage.setItem('{_TOKEN_KEY}', '{token}');
+    (function() {{
+        // Thử ghi trực tiếp (same-origin)
+        try {{ localStorage.setItem('{_TOKEN_KEY}', '{token}'); }} catch(e) {{}}
+        // Ghi qua parent (iframe Streamlit component)
+        try {{ window.parent.localStorage.setItem('{_TOKEN_KEY}', '{token}'); }} catch(e) {{}}
+    }})();
     </script>
     """, height=0, scrolling=False)
 
 def _clear_token_from_browser():
-    """Xóa token khỏi localStorage khi logout."""
+    """Xóa token khỏi localStorage."""
     import streamlit.components.v1 as components
     components.html(f"""
     <script>
-        localStorage.removeItem('{_TOKEN_KEY}');
+    (function() {{
+        try {{ localStorage.removeItem('{_TOKEN_KEY}'); }} catch(e) {{}}
+        try {{ window.parent.localStorage.removeItem('{_TOKEN_KEY}'); }} catch(e) {{}}
+    }})();
     </script>
     """, height=0, scrolling=False)
 
-def _read_token_from_browser() -> str | None:
+def _read_token_from_browser():
     """
-    Đọc token từ localStorage qua JS → gửi vào query_params.
-    Cơ chế: JS đọc localStorage rồi đặt vào URL ?_tk=... → Streamlit rerun.
+    Đọc token từ localStorage của trang cha → đặt vào URL ?_tk= → Streamlit rerun.
+    Phải dùng window.parent vì component chạy trong iframe.
     """
     import streamlit.components.v1 as components
     components.html(f"""
     <script>
     (function() {{
-        var tk = localStorage.getItem('{_TOKEN_KEY}');
+        var tk = null;
+        // Đọc từ parent localStorage (component iframe)
+        try {{ tk = window.parent.localStorage.getItem('{_TOKEN_KEY}'); }} catch(e) {{}}
+        // Fallback: đọc từ localStorage của chính iframe
+        if (!tk) {{ try {{ tk = localStorage.getItem('{_TOKEN_KEY}'); }} catch(e) {{}} }}
+
         if (tk) {{
-            var url = new URL(window.location.href);
-            if (!url.searchParams.get('_tk')) {{
-                url.searchParams.set('_tk', tk);
-                window.location.replace(url.toString());
+            // Điều hướng trang cha (không phải iframe)
+            try {{
+                var url = new URL(window.parent.location.href);
+                if (!url.searchParams.get('_tk')) {{
+                    url.searchParams.set('_tk', encodeURIComponent(tk));
+                    window.parent.location.replace(url.toString());
+                }}
+            }} catch(e) {{
+                // Fallback nếu không truy cập được parent
+                var url2 = new URL(window.location.href);
+                url2.searchParams.set('_tk', encodeURIComponent(tk));
+                window.location.replace(url2.toString());
             }}
         }}
     }})();
@@ -397,7 +418,8 @@ def _show_login():
 # Kiểm tra xác thực
 if not st.session_state.get("authenticated", False):
     # 1. Thử auto-login qua localStorage token (sau F5)
-    _tk = st.query_params.get("_tk", "")
+    import urllib.parse as _urlparse
+    _tk = _urlparse.unquote(st.query_params.get("_tk", ""))
     if _tk:
         _uname_from_token = _validate_token(_tk)
         if _uname_from_token:
