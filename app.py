@@ -418,17 +418,18 @@ input::placeholder, textarea::placeholder {{ color: #7a93bf !important; }}
     max-width: 100% !important;
 }}
 [data-testid="stChatInput"] textarea {{
-    background: rgba(255,255,255,0.1) !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0a2a5e !important;
     border: 2px solid rgba(196,18,48,0.6) !important;
     border-radius: 12px !important;
     min-height: 54px !important;
     font-size: 15px !important;
+    font-weight: 500 !important;
     padding: 14px 60px 14px 16px !important;
     line-height: 1.5 !important;
     width: 100% !important;
 }}
-[data-testid="stChatInput"] textarea::placeholder {{ color: #7a93bf !important; }}
+[data-testid="stChatInput"] textarea::placeholder {{ color: #7a93bf !important; font-weight: 400 !important; }}
 [data-testid="stChatInput"] textarea:focus {{
     border-color: #C41230 !important;
     box-shadow: 0 0 0 3px rgba(196,18,48,0.2) !important;
