@@ -249,9 +249,8 @@ def _logo_base64() -> str:
 def _show_login():
     logo_b64 = _logo_base64()
     logo_src = f"data:image/png;base64,{logo_b64}" if logo_b64 else ""
-    logo_img = f'<img src="{logo_src}" style="width:52px;height:52px;object-fit:contain;">' if logo_src else "🏭"
+    logo_img = f'<img src="{logo_src}" style="width:50px;height:50px;object-fit:contain;">' if logo_src else "🏭"
 
-    # CSS: nền gradient toàn trang + ẩn chrome Streamlit + card white căn giữa
     st.markdown(f"""
     <style>
     #MainMenu,footer,header,[data-testid="stToolbar"],
@@ -259,154 +258,113 @@ def _show_login():
 
     body,[data-testid="stAppViewContainer"] {{
         background: linear-gradient(150deg,#1a2e6e 0%,#3A5BF0 60%,#6b8eff 100%) !important;
-        min-height: 100vh;
     }}
     [data-testid="stMain"],.main {{background:transparent!important}}
 
-    /* Xóa padding Streamlit, giới hạn chiều rộng card */
+    /* Kéo content lên trên, giới hạn rộng tối đa 380px */
     .main .block-container {{
-        padding: 0 !important;
-        max-width: 100% !important;
+        padding-top: 32px !important;
+        padding-bottom: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        max-width: 380px !important;
+        margin: 0 auto !important;
     }}
 
-    /* Wrapper toàn màn hình căn giữa */
-    .lpage {{
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px 16px;
-    }}
-
-    /* Card trắng */
+    /* Card bọc toàn bộ header + form */
     .lcard {{
         background: #fff;
-        border-radius: 24px;
-        padding: 32px 28px 24px;
-        width: 100%;
-        max-width: 360px;
-        box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+        border-radius: 22px;
+        padding: 28px 24px 20px;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.22);
     }}
-
-    /* Logo vòng */
     .llogo {{
-        width:68px;height:68px;border-radius:50%;
-        background:#eef1ff;
+        width:62px;height:62px;border-radius:50%;background:#eef1ff;
         display:flex;align-items:center;justify-content:center;
-        margin:0 auto 14px;overflow:hidden;
+        margin:0 auto 10px;overflow:hidden;
     }}
-
     .lname {{
-        text-align:center;font-size:20px;font-weight:800;
-        color:#1a2340;margin-bottom:4px;
-        font-family:-apple-system,sans-serif;
+        text-align:center;font-size:19px;font-weight:800;
+        color:#1a2340;margin-bottom:3px;
     }}
     .lsub {{
-        text-align:center;font-size:12px;color:#8a95b8;
-        margin-bottom:22px;font-family:-apple-system,sans-serif;
+        text-align:center;font-size:12px;color:#8a95b8;margin-bottom:16px;
     }}
     .ldiv {{
-        height:2px;border-radius:2px;margin-bottom:22px;
+        height:2px;border-radius:2px;margin-bottom:16px;
         background:linear-gradient(90deg,#3A5BF0,#C41230);
     }}
 
-    /* === Inputs trong column trung tâm === */
-    div[data-testid="column"]:nth-child(2) [data-testid="stTextInput"] input {{
-        height: 44px !important;
-        background: #f4f6ff !important;
-        border: 1.5px solid #dce2f5 !important;
-        border-radius: 12px !important;
-        font-size: 14px !important;
-        color: #1a2340 !important;
-        padding: 0 14px !important;
-        box-shadow: none !important;
+    /* Inputs */
+    [data-testid="stTextInput"] {{margin-bottom:8px!important}}
+    [data-testid="stTextInput"] label {{
+        font-size:12px!important;font-weight:600!important;color:#5a6680!important;
+        margin-bottom:4px!important;
     }}
-    div[data-testid="column"]:nth-child(2) [data-testid="stTextInput"] input:focus {{
-        border-color: #3A5BF0 !important;
-        background: #fff !important;
-        box-shadow: 0 0 0 3px rgba(58,91,240,0.1) !important;
+    [data-testid="stTextInput"] input {{
+        height:42px!important;
+        background:#f4f6ff!important;
+        border:1.5px solid #dce2f5!important;
+        border-radius:11px!important;
+        font-size:14px!important;color:#1a2340!important;
+        padding:0 13px!important;box-shadow:none!important;
     }}
-    div[data-testid="column"]:nth-child(2) [data-testid="stTextInput"] input::placeholder {{
-        color: #b8c2da !important;
+    [data-testid="stTextInput"] input:focus {{
+        border-color:#3A5BF0!important;background:#fff!important;
+        box-shadow:0 0 0 3px rgba(58,91,240,0.1)!important;
     }}
-    div[data-testid="column"]:nth-child(2) [data-testid="stTextInput"] label {{
-        font-size: 12px !important;
-        font-weight: 600 !important;
-        color: #5a6680 !important;
+    [data-testid="stTextInput"] input::placeholder {{color:#b8c2da!important}}
+
+    /* Nút */
+    button[kind="primaryFormSubmit"] {{
+        background:linear-gradient(135deg,#3A5BF0,#6b8eff)!important;
+        border:none!important;border-radius:11px!important;
+        height:44px!important;font-size:15px!important;
+        font-weight:700!important;color:white!important;
+        box-shadow:0 4px 14px rgba(58,91,240,0.38)!important;
+        margin-top:4px!important;
     }}
 
-    /* Nút đăng nhập */
-    div[data-testid="column"]:nth-child(2) button[kind="primaryFormSubmit"] {{
-        background: linear-gradient(135deg,#3A5BF0,#6b8eff) !important;
-        border: none !important;
-        border-radius: 12px !important;
-        height: 46px !important;
-        font-size: 15px !important;
-        font-weight: 700 !important;
-        color: white !important;
-        box-shadow: 0 5px 16px rgba(58,91,240,0.38) !important;
-        margin-top: 2px !important;
-    }}
-    div[data-testid="column"]:nth-child(2) button[kind="primaryFormSubmit"]:hover {{
-        box-shadow: 0 7px 22px rgba(58,91,240,0.52) !important;
+    /* Alert, caption */
+    [data-testid="stAlert"] {{border-radius:10px!important;font-size:13px!important;margin-top:6px!important}}
+    [data-testid="stCaptionContainer"] p {{
+        color:#8a95b8!important;font-size:11px!important;
+        text-align:center!important;margin-top:8px!important;
     }}
 
-    /* Alert lỗi */
-    div[data-testid="column"]:nth-child(2) [data-testid="stAlert"] {{
-        border-radius: 10px !important;
-        font-size: 13px !important;
-        padding: 8px 12px !important;
-        margin-top: 6px !important;
-    }}
-
-    /* Caption */
-    div[data-testid="column"]:nth-child(2) [data-testid="stCaptionContainer"] p {{
-        color: #8a95b8 !important;
-        font-size: 11px !important;
-        text-align: center !important;
-        margin-top: 4px !important;
-    }}
-
-    /* Padding giữa các ô input */
-    div[data-testid="column"]:nth-child(2) [data-testid="stTextInput"] {{
-        margin-bottom: 4px !important;
-    }}
+    /* Xóa gap thừa giữa markdown và form */
+    [data-testid="stMarkdownContainer"] + div {{margin-top:0!important}}
+    .element-container {{margin-bottom:0!important}}
     </style>
 
-    <div class="lpage">
-      <div class="lcard">
-        <div class="llogo">{logo_img}</div>
-        <div class="lname">INSAKO Tax Agent</div>
-        <div class="lsub">Sổ tay Kế toán – Thuế – Tài chính nội bộ</div>
-        <div class="ldiv"></div>
-      </div>
+    <div class="lcard">
+      <div class="llogo">{logo_img}</div>
+      <div class="lname">INSAKO Tax Agent</div>
+      <div class="lsub">Sổ tay Kế toán – Thuế – Tài chính nội bộ</div>
+      <div class="ldiv"></div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Dùng columns để căn form vào giữa, khớp với card HTML bên trên
-    _, col, _ = st.columns([1, 2, 1])
-    with col:
-        with st.form("login_form"):
-            username = st.text_input("Tên đăng nhập", placeholder="Nhập username...")
-            password = st.text_input("Mật khẩu", type="password", placeholder="Nhập mật khẩu...")
-            submitted = st.form_submit_button("Đăng nhập", use_container_width=True, type="primary")
+    with st.form("login_form"):
+        username = st.text_input("Tên đăng nhập", placeholder="Nhập username...")
+        password = st.text_input("Mật khẩu", type="password", placeholder="Nhập mật khẩu...")
+        submitted = st.form_submit_button("Đăng nhập", use_container_width=True, type="primary")
+        if submitted:
+            users = _load_users()
+            if _check_login(username, password, users):
+                uname_clean = username.strip().lower()
+                token = _make_token(uname_clean)
+                st.session_state["authenticated"] = True
+                st.session_state["username"] = uname_clean
+                st.session_state["user_name"] = users[uname_clean]["name"]
+                st.session_state["auth_token"] = token
+                st.query_params.clear()
+                _save_token_to_browser(token)
+                st.rerun()
+            else:
+                st.error("Sai tên đăng nhập hoặc mật khẩu")
 
-            if submitted:
-                users = _load_users()
-                if _check_login(username, password, users):
-                    uname_clean = username.strip().lower()
-                    token = _make_token(uname_clean)
-                    st.session_state["authenticated"] = True
-                    st.session_state["username"] = uname_clean
-                    st.session_state["user_name"] = users[uname_clean]["name"]
-                    st.session_state["auth_token"] = token
-                    st.query_params.clear()
-                    _save_token_to_browser(token)
-                    st.rerun()
-                else:
-                    st.error("Sai tên đăng nhập hoặc mật khẩu")
-
-        st.caption("🔒 Hệ thống nội bộ · Liên hệ admin nếu quên mật khẩu")
+    st.caption("🔒 Hệ thống nội bộ · Liên hệ admin nếu quên mật khẩu")
 
 
 # Kiểm tra xác thực
