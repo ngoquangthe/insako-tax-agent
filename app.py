@@ -248,74 +248,191 @@ def _logo_base64() -> str:
 
 def _show_login():
     logo_b64 = _logo_base64()
-    logo_html = (
-        f'<img src="data:image/png;base64,{logo_b64}" style="height:72px; margin-bottom:1rem;">'
-        if logo_b64 else
-        '<div style="font-size:48px; margin-bottom:0.5rem;">🏭</div>'
-    )
-    st.markdown(f"""
+    logo_src = f"data:image/png;base64,{logo_b64}" if logo_b64 else ""
+
+    st.markdown("""
     <style>
-    [data-testid="stAppViewContainer"] {{
-        background: linear-gradient(135deg, #1B3A7A 0%, #0d2150 100%);
-    }}
-    .login-wrap {{
-        max-width: 440px; margin: 60px auto 0;
-        background: white; border-radius: 20px;
-        padding: 2.5rem 2.2rem;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.35);
-    }}
-    .login-logo {{ text-align:center; margin-bottom:0.25rem; }}
-    .login-title {{
-        text-align:center; font-size:20px; font-weight:700;
-        color:#1B3A7A; margin-bottom:0.2rem;
-    }}
-    .login-sub {{ text-align:center; font-size:13px; color:#888; margin-bottom:1.6rem; }}
-    .login-divider {{
-        height:3px; border-radius:2px; margin-bottom:1.6rem;
-        background: linear-gradient(90deg, #C41230, #1B3A7A);
-    }}
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"] {{
-        background: #C41230 !important;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { font-family: 'Inter', sans-serif !important; }
+
+    /* Ẩn toàn bộ chrome của Streamlit */
+    #MainMenu, footer, header,
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"] { display: none !important; }
+
+    /* Nền gradient */
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
+    .main { background: transparent !important; }
+
+    body, [data-testid="stAppViewContainer"] {
+        background: linear-gradient(160deg, #1a2e6e 0%, #3A5BF0 60%, #5b7fff 100%) !important;
+        min-height: 100vh;
+    }
+
+    .main .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* Card login – mobile style */
+    .lcard {
+        width: 100%;
+        max-width: 380px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 28px;
+        padding: 2.5rem 2rem 2rem;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    }
+
+    /* Logo vòng tròn */
+    .llogo-wrap {
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(58,91,240,0.2);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.2rem;
+        overflow: hidden;
+    }
+    .llogo-wrap img { width: 64px; height: 64px; object-fit: contain; }
+    .llogo-emoji { font-size: 36px; line-height: 1; }
+
+    .lapp-name {
+        text-align: center;
+        font-size: 22px; font-weight: 800;
+        color: #1a2340; margin-bottom: 2px;
+        letter-spacing: -0.3px;
+    }
+    .lapp-sub {
+        text-align: center;
+        font-size: 13px; color: #7a8ab8; margin-bottom: 1.6rem;
+        font-weight: 500;
+    }
+
+    /* Input trong form login */
+    [data-testid="stForm"] input {
+        background: #f4f6ff !important;
+        border: 1.5px solid #dce2f5 !important;
+        border-radius: 14px !important;
+        padding: 14px 16px !important;
+        font-size: 15px !important;
+        font-weight: 500 !important;
+        color: #1a2340 !important;
+        height: 52px !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
+    }
+    [data-testid="stForm"] input:focus {
+        border-color: #3A5BF0 !important;
+        background: #fff !important;
+        box-shadow: 0 0 0 3px rgba(58,91,240,0.12) !important;
+    }
+    [data-testid="stForm"] input::placeholder { color: #b0bcd8 !important; }
+    [data-testid="stForm"] label {
+        font-size: 13px !important; font-weight: 600 !important;
+        color: #4a5580 !important; margin-bottom: 4px !important;
+    }
+
+    /* Nút đăng nhập */
+    [data-testid="stForm"] button[kind="primaryFormSubmit"] {
+        background: linear-gradient(135deg, #3A5BF0, #5b7fff) !important;
         border: none !important;
-        font-weight: 600 !important;
-    }}
+        border-radius: 14px !important;
+        height: 52px !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        color: white !important;
+        box-shadow: 0 6px 20px rgba(58,91,240,0.4) !important;
+        margin-top: 6px !important;
+        transition: all 0.2s !important;
+    }
+    [data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
+        box-shadow: 0 8px 28px rgba(58,91,240,0.55) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* Caption + expander quên mật khẩu */
+    [data-testid="stCaptionContainer"] p { color: #9aa5c9 !important; font-size: 12px !important; text-align: center !important; }
+    [data-testid="stExpander"] {
+        background: #f7f9ff !important;
+        border: 1px solid #e0e8ff !important;
+        border-radius: 14px !important;
+    }
+    [data-testid="stExpander"] summary { color: #3A5BF0 !important; font-size: 13px !important; font-weight: 600 !important; }
+
+    /* Alert lỗi */
+    [data-testid="stAlert"] {
+        border-radius: 12px !important;
+        font-size: 14px !important;
+    }
+
+    /* Full-screen centering wrapper */
+    .login-page-outer {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+    }
+
+    /* Tagline phía trên card */
+    .ltag {
+        color: rgba(255,255,255,0.75);
+        font-size: 13px; font-weight: 500;
+        text-align: center;
+        margin-bottom: 20px;
+        letter-spacing: 0.3px;
+    }
+
+    @media (max-width: 480px) {
+        .lcard { padding: 2rem 1.4rem 1.6rem; border-radius: 22px; }
+        .lapp-name { font-size: 20px; }
+    }
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2.2, 1])
-    with col2:
-        st.markdown(f'<div class="login-wrap">', unsafe_allow_html=True)
-        st.markdown(f'<div class="login-logo">{logo_html}</div>', unsafe_allow_html=True)
-        st.markdown('<div class="login-title">INSAKO Tax Agent</div>', unsafe_allow_html=True)
-        st.markdown('<div class="login-sub">Sổ tay Kế toán – Thuế – Tài chính nội bộ</div>', unsafe_allow_html=True)
-        st.markdown('<div class="login-divider"></div>', unsafe_allow_html=True)
+    # Outer wrapper căn giữa toàn màn hình
+    st.markdown('<div class="login-page-outer">', unsafe_allow_html=True)
+    st.markdown('<p class="ltag">🔒 Hệ thống nội bộ INSAKO · Chỉ dành cho nhân viên</p>', unsafe_allow_html=True)
+    st.markdown('<div class="lcard">', unsafe_allow_html=True)
 
-        with st.form("login_form"):
-            username = st.text_input("Tên đăng nhập", placeholder="Nhập username...")
-            password = st.text_input("Mật khẩu", type="password", placeholder="Nhập mật khẩu...")
-            submitted = st.form_submit_button("🔐 Đăng nhập", use_container_width=True, type="primary")
+    # Logo + tên app
+    if logo_src:
+        st.markdown(f'<div class="llogo-wrap"><img src="{logo_src}"></div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="llogo-wrap"><span class="llogo-emoji">🏭</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="lapp-name">INSAKO Tax Agent</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lapp-sub">Sổ tay Kế toán – Thuế – Tài chính nội bộ</div>', unsafe_allow_html=True)
 
-            if submitted:
-                users = _load_users()
-                if _check_login(username, password, users):
-                    uname_clean = username.strip().lower()
-                    token = _make_token(uname_clean)
-                    st.session_state["authenticated"] = True
-                    st.session_state["username"] = uname_clean
-                    st.session_state["user_name"] = users[uname_clean]["name"]
-                    st.session_state["auth_token"] = token
-                    _save_token_to_browser(token)
-                    st.rerun()
-                else:
-                    st.error("❌ Sai tên đăng nhập hoặc mật khẩu")
+    with st.form("login_form"):
+        username = st.text_input("Tên đăng nhập", placeholder="Nhập username...")
+        password = st.text_input("Mật khẩu", type="password", placeholder="Nhập mật khẩu...")
+        submitted = st.form_submit_button("Đăng nhập", use_container_width=True, type="primary")
 
-        st.caption("Liên hệ quản trị viên nếu quên mật khẩu.")
+        if submitted:
+            users = _load_users()
+            if _check_login(username, password, users):
+                uname_clean = username.strip().lower()
+                token = _make_token(uname_clean)
+                st.session_state["authenticated"] = True
+                st.session_state["username"] = uname_clean
+                st.session_state["user_name"] = users[uname_clean]["name"]
+                st.session_state["auth_token"] = token
+                _save_token_to_browser(token)
+                st.rerun()
+            else:
+                st.error("Sai tên đăng nhập hoặc mật khẩu")
 
-        st.markdown("---")
-        with st.expander("🔑 Quên mật khẩu?"):
-            _forgot_password_ui()
+    st.caption("Liên hệ quản trị viên nếu quên mật khẩu.")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+    with st.expander("🔑 Quên mật khẩu?"):
+        _forgot_password_ui()
+
+    st.markdown('</div>', unsafe_allow_html=True)  # lcard
+    st.markdown('</div>', unsafe_allow_html=True)  # login-page-outer
 
 
 # Kiểm tra xác thực – hỗ trợ tự đăng nhập lại sau F5 qua localStorage token
